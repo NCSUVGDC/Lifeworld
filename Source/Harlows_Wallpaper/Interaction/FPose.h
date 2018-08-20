@@ -22,6 +22,8 @@ struct FPose
 	/**
 	 * Names of each input axis/action that are each needed for this pose, as well as the sensitivity
 	 * threshold for each (only applicable to axes)
+	 * 
+	 * Note to self: See UPlayerInput.AxisKeyMap and ActionKeyMap for map of input names.
 	 */
 	UPROPERTY(BlueprintReadWrite)
 		TMap<FName, FVector2D> Inputs;
