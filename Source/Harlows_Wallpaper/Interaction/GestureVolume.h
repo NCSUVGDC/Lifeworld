@@ -38,8 +38,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Harlow")
 		FNarrativeEvent Event;
 
+	/**
+	 * @param Self is necessary as a delegate placeholder
+	 */
 	UFUNCTION(BlueprintCallable)
-		void OnBeginOverlap(class UPrimitiveComponent* DJObviouslyDoesntKnowWhatHesDoing, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		void OnBeginOverlap(class UPrimitiveComponent* Self, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 	// UFUNCTION(BlueprintCallable)
 	// 	void OnEndOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);

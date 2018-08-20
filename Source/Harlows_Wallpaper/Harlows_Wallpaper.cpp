@@ -4,3 +4,7 @@
 #include "Modules/ModuleManager.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, Harlows_Wallpaper, "Harlows_Wallpaper" );
+
+DEFINE_LOG_CATEGORY(Interaction);
+
+DEFINE_LOG_CATEGORY(Player);

@@ -4,3 +4,6 @@
 
 #include "CoreMinimal.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(Interaction, VeryVerbose, All);
+
+DECLARE_LOG_CATEGORY_EXTERN(Player, VeryVerbose, All);
