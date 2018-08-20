@@ -11,7 +11,5 @@ UGestureVolume::UGestureVolume()
 void UGestureVolume::OnBeginOverlap(class UPrimitiveComponent* DJObviouslyDoesntKnowWhatHesDoing, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, 
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-UE_LOG(LogTemp, Log, TEXT("Overlap!"));
-
-
+	UE_LOG(LogTemp, Log, TEXT("Overlap!"));
 }

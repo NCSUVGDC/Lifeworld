@@ -21,7 +21,7 @@ struct FMovement
 {
 	GENERATED_USTRUCT_BODY();
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FName Name;
 
 	/**
@@ -29,6 +29,6 @@ struct FMovement
 	 * movement. These will all be relative to a "hidden"/implicit initial keyframe of zero everything,
 	 * which could be in any position/rotation in practice.
 	 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TArray<FTransform> Keyframes;
 };

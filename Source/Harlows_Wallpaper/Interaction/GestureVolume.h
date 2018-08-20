@@ -16,7 +16,7 @@
  * component using the built in classes (e.g. BrushComponent) but couldn't overcome the compilation
  * errors.
  */
-UCLASS()
+UCLASS(ClassGroup=(Custom), Blueprintable, META = (BlueprintSpawnableComponent))
 class HARLOWS_WALLPAPER_API UGestureVolume : public UCapsuleComponent
 {
 	GENERATED_BODY()
@@ -29,13 +29,13 @@ public:
 	/**
 	 * Gesture that needs to be completed in this volume to signal the event
 	 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Harlow")
 		FGesture Gesture;
 
 	/**
 	 * Event to signal once this gesture has been completed
 	 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Harlow")
 		FNarrativeEvent Event;
 
 	UFUNCTION(BlueprintCallable)

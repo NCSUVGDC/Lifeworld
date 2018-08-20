@@ -16,7 +16,7 @@ struct FPose
 {
 	GENERATED_USTRUCT_BODY();
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FName Name;
 
 	/**
@@ -25,7 +25,7 @@ struct FPose
 	 * 
 	 * Note to self: See UPlayerInput.AxisKeyMap and ActionKeyMap for map of input names.
 	 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TMap<FName, FVector2D> Inputs;
 
 	FORCEINLINE bool operator==(const FPose& Other) const

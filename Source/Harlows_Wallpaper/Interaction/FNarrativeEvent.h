@@ -10,9 +10,9 @@ struct FNarrativeEvent
 {
 	GENERATED_USTRUCT_BODY();
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FName Name;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FNarrativeEventDelegate TestDelegate;
 };

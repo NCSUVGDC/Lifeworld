@@ -19,13 +19,13 @@ struct FGesture
 {
 	GENERATED_USTRUCT_BODY();
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		FName Name;
 
 	/**
 	 * List of each pose and it's movements that must be completed in order to signal the target event
 	 */
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TMap<FPose, FMovement> Sequence;
 
 };
