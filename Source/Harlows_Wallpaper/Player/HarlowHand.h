@@ -18,7 +18,7 @@ public:
 	AHarlowHand();
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Harlow")
-		bool 
+	/*UFUNCTION(BlueprintCallable, Category = "Harlow")
+		bool */
 	
 };
