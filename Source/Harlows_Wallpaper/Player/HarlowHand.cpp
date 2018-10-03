@@ -16,6 +16,20 @@ void AHarlowHand::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	if (OwningPawn == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AHarlowHand spawned with no owning pawn!"));
+	}
+	else
+	{
+		PlayerInput = OwningPawn->InputComponent;
+
+		if (PlayerInput == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Player pawn missing input component!"));
+		}
+	}
+
 }
 
 // Called every frame
