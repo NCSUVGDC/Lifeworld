@@ -23,9 +23,8 @@ private:
 	FTimespan Accumulator;
 	// amount of in-game time passed
 	FTimespan CurrentTime;
-	DECLARE_DELEGATE(DebugFuncDelegate)
-	// debug function toggled by custom in-game settings
-	DebugFuncDelegate DebugDisplayTimeDel;
+	// flag for enabling debug output
+	bool EnableDebug;
 
 protected:
 	// Called when the game starts or when spawned
@@ -43,8 +42,4 @@ public:
 	// rate at which time progresses
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
 	float Rate;
-
-	// flag for enabling debug output
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
-	bool EnableDebug;
 };
