@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "HarlowPawn.h"
+#include "../Interaction/FPose.h"
 #include "HarlowHand.generated.h"
 
 UCLASS()
@@ -15,7 +16,12 @@ class HARLOWS_WALLPAPER_API AHarlowHand : public AActor
 protected:
 	virtual void BeginPlay() override;
 
+
+
 	/** Cached to make accessing the user's input easier */
+	APlayerController* PlayerController;
+
+	/** Cached to make accessing the user's input easier [TODO MAY NOT BE NEEDED]*/
 	UInputComponent* PlayerInput;
 
 public:	
@@ -31,7 +37,11 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player", META = (ExposeOnSpawn="True"))
 		AHarlowPawn* OwningPawn;
 
-
+	/** 
+	 * Returns whether or not the player is making the given pose
+	 */
+	UFUNCTION(BlueprintCallable)
+		const bool IsMakingPose(UPARAM(ref) const FPose& Pose);
 
 	
 };

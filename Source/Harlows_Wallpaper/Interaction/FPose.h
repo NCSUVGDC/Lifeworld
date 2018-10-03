@@ -20,13 +20,14 @@ struct FPose
 		FName Name;
 
 	/**
-	 * Names of each input axis/action that are each needed for this pose, as well as the sensitivity
-	 * threshold for each (only applicable to axes)
+	 * Names of each input axis/action that are each needed for this pose, as well as the min/max 
+	 * sensitivity thresholds for each (only applicable to axes)
 	 * 
 	 * Note to self: See UPlayerInput.AxisKeyMap and ActionKeyMap for map of input names.
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 		TMap<FName, FVector2D> Inputs;
+
 
 	FORCEINLINE bool operator==(const FPose& Other) const
 	{

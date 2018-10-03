@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HarlowHand.h"
-
+#include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 
 // Sets default values
 AHarlowHand::AHarlowHand()
@@ -22,6 +22,13 @@ void AHarlowHand::BeginPlay()
 	}
 	else
 	{
+		PlayerController = Cast<APlayerController>(OwningPawn->GetController());
+
+		if (PlayerController == nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Player pawn missing player controller!"));
+		}
+
 		PlayerInput = OwningPawn->InputComponent;
 
 		if (PlayerInput == nullptr)
@@ -32,10 +39,73 @@ void AHarlowHand::BeginPlay()
 
 }
 
+const bool AHarlowHand::IsMakingPose(const FPose& Pose)
+{
+	if (PlayerInput == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Can't check hand pose without InputComponent!"));
+		return false;
+	}
+
+	// Iterate over all input key-sensitivty pairs; will short circuit and return
+	// false if a key is found to be 
+	for (auto& KeyValuePair : Pose.Inputs)
+	{
+		FName InputName = KeyValuePair.Key;
+		FVector2D SensitivityRange = KeyValuePair.Value;
+
+		UE_LOG(LogTemp, Log, TEXT("Getting Input Axis for '%s'..."), *InputName.ToString())
+
+		float CurrentKeyInput = PlayerInput->GetAxisValue(InputName);
+
+		UE_LOG(LogTemp, Log, TEXT("Axis '%s' had value %.2f! Checking if it's within '%s'..."),
+			*InputName.ToString(), CurrentKeyInput, *SensitivityRange.ToString());
+
+
+		// If the key is not within the sensitivity range, immediately return false
+		if (SensitivityRange.IsNearlyZero()) // If sensitivity is undefined, any input value above 0 counts
+		{
+			if (FMath::IsNearlyZero(CurrentKeyInput))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Did not satisfy (> 0.0) sensitivity range!"));
+				return false;
+			}
+			
+			UE_LOG(LogTemp, Log, TEXT("Did satisfy (> 0.0) sensitivty range!"))
+		}
+		else // Sensitivity is defined; make sure the current input fits in the range
+		{
+			if (CurrentKeyInput < SensitivityRange.X)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Did not satisfy sensitivity range (too low)!"));
+				return false;
+			}
+			else if (CurrentKeyInput > SensitivityRange.Y)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Did not satisfy sensitivity range (too high)!"));
+				return false;
+			}
+
+			UE_LOG(LogTemp, Log, TEXT("Did satisfy sensitivty range!"))
+		}
+	} // End looping over all Pose inputs
+
+	// We didn't return false yet, so all inputs must have been satisfied!
+	UE_LOG(LogTemp, Log, TEXT("Player is making pose '%s'!"), *Pose.Name.ToString());
+	return true;
+}
+
 // Called every frame
 void AHarlowHand::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//if (PlayerController != nullptr)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("Right Thumbstick X: %.3f ; Right Facebutton 1: %.3f"),
+	//		PlayerController->GetInputAnalogKeyState(EKeys::MotionController_Right_Thumbstick_X),
+	//		PlayerController->GetInputAnalogKeyState(EKeys::MotionController_Right_FaceButton1)
+	//		);
+	//}
 }
 
