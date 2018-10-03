@@ -23,16 +23,15 @@ private:
 	FTimespan Accumulator;
 	// amount of in-game time passed
 	FTimespan CurrentTime;
+	DECLARE_DELEGATE(DebugFuncDelegate)
+	// debug function toggled by custom in-game settings
+	DebugFuncDelegate DebugDisplayTimeDel;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:
-	// print current time as debug text
-	UFUNCTION(BlueprintCallable, Category="TimeSystem")
-		void DebugDisplayTime();
-
 	// Get total elapsed days
 	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
 	int32 GetElapsedDays();
@@ -43,8 +42,9 @@ public:
 
 	// rate at which time progresses
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
-		float Rate;
+	float Rate;
 
-
-
+	// flag for enabling debug output
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
+	bool EnableDebug;
 };

@@ -2,7 +2,6 @@
 
 #include "TimeSystem.h"
 
-
 // Sets default values
 ATimeSystem::ATimeSystem()
 {
@@ -15,6 +14,29 @@ ATimeSystem::ATimeSystem()
 void ATimeSystem::BeginPlay()
 {
 	Super::BeginPlay();
+	// toggle debug function based on in-game settings
+	bool debug;
+	GConfig->GetBool(TEXT("/Script/Harlows_Wallpaper.CustomGameSettings"), TEXT("bEnableDebugMessages"), debug, GGameIni);
+	if (debug)
+	{
+		// enabled, so bind our print function
+		DebugDisplayTimeDel.BindLambda([&]()
+		{
+			if (GEngine)
+			{
+				FString DebugMsg = FString::Printf(TEXT("ElapsedTime: %d:%d:%d\nElapsedDays: %d"), CurrentTime.GetHours(), CurrentTime.GetMinutes(), CurrentTime.GetSeconds(), GetElapsedDays());
+				GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
+			}
+
+			UE_LOG(LogTemp, Warning, TEXT("ElapsedTime: %d:%d:%d\nElapsedDays: %d"), CurrentTime.GetHours(), CurrentTime.GetMinutes(), CurrentTime.GetSeconds(), GetElapsedDays());
+		});
+	}
+	else
+	{
+		// disabled, so don't print anything
+		DebugDisplayTimeDel.BindLambda([]() {});
+	}
+
 	// Create a Timespan based on rate
 	Accumulator = FTimespan::FTimespan(0, FGenericPlatformMath::FloorToInt(10 * Rate), 0);
 }
@@ -25,16 +47,7 @@ void ATimeSystem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	// Update current time
 	CurrentTime += Accumulator;
-	DebugDisplayTime();
-}
-
-void ATimeSystem::DebugDisplayTime() {
-	if (GEngine) {
-		FString DebugMsg = FString::Printf(TEXT("ElapsedTime: %d:%d:%d\nElapsedDays: %d"), CurrentTime.GetHours(), CurrentTime.GetMinutes(), CurrentTime.GetSeconds(), GetElapsedDays());
-		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("ElapsedTime: %d:%d:%d\nElapsedDays: %d"), CurrentTime.GetHours(), CurrentTime.GetMinutes(), CurrentTime.GetSeconds(), GetElapsedDays());
+	DebugDisplayTimeDel.Execute();
 }
 
 int32 ATimeSystem::GetElapsedDays()
