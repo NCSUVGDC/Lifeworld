@@ -1,18 +1,14 @@
 #pragma once
 #include "CoreMinimal.h"
-#include "FPose.h"
-#include "FMovement.h"
 #include "FGesture.generated.h"
 
 /**
- * A "gesture" is defined as a sequence of poses and movements. When the gesture is complete, one or
- * more events can be signaled
+ * A "gesture" is defined as one or more buttons held at a defined sensitivity. 
  * 
- * E.g. Pulling a lamp chain: Pinch (pose) on the chain, pull (movement) down while still pinching.
- * Gesture is complete so the lamp would then turn on or off.
- *      Unlocking a combination lock: Pinch (pose) on the dial, rotate (movement) a few clicks, 
- * rotate (movement) a few clicks to the next number, etc. The correct numbers are defined by 
- * specifying the rotation amounts
+ * E.g. A pinch is defined as holding the trigger and one or more face buttons,
+ *      a grip is defined as holding the trigger, grip, and a face button,
+ *      a poke is defined as holding the grip (and optionally a face button)
+ * 
  */
 USTRUCT(BlueprintType)
 struct FGesture
@@ -23,9 +19,22 @@ struct FGesture
 		FName Name;
 
 	/**
-	 * List of each pose and it's movements that must be completed in order to signal the target event
+	 * Names of each input axis/action that are each needed for this gesture, as well as the min/max 
+	 * sensitivity thresholds for each. A sensitivity threshold of (0, 1) means the input is optional.
+	 * 
+	 * Note: See UPlayerInput.AxisKeyMap and ActionKeyMap for map of input names
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TMap<FPose, FMovement> Sequence;
+		TMap<FName, FVector2D> Inputs;
 
+	FORCEINLINE bool operator==(const FGesture& Other) const
+	{
+		return this->Name == Other.Name;
+	}
 };
+
+/** For use with TMaps */
+FORCEINLINE uint32 GetTypeHash(const FGesture& Gesture)
+{
+	return GetTypeHash(Gesture.Name);
+}

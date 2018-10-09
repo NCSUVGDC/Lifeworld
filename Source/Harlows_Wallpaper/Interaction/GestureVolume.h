@@ -27,10 +27,10 @@ public:
 	UGestureVolume();
 
 	/**
-	 * Gesture that needs to be completed in this volume to signal the event
+	 * Any gestures that need to be completed in this volume to signal the event
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Harlow")
-		FGesture Gesture;
+		TArray<FGesture> Gestures;
 
 	/**
 	 * Event to signal once this gesture has been completed

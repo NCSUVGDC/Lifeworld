@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "HarlowPawn.h"
-#include "../Interaction/FPose.h"
+#include "../Interaction/FGesture.h"
 #include "HarlowHand.generated.h"
 
 UCLASS()
@@ -38,10 +38,10 @@ public:
 		AHarlowPawn* OwningPawn;
 
 	/** 
-	 * Returns whether or not the player is making the given pose
+	 * Returns whether or not the player is making the given Gesture
 	 */
 	UFUNCTION(BlueprintCallable)
-		const bool IsMakingPose(UPARAM(ref) const FPose& Pose);
+		const bool IsMakingGesture(UPARAM(ref) const FGesture& Gesture);
 
 	
 };

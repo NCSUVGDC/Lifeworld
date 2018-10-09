@@ -39,17 +39,17 @@ void AHarlowHand::BeginPlay()
 
 }
 
-const bool AHarlowHand::IsMakingPose(const FPose& Pose)
+const bool AHarlowHand::IsMakingGesture(const FGesture& Gesture)
 {
 	if (PlayerInput == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Can't check hand pose without InputComponent!"));
+		UE_LOG(LogTemp, Error, TEXT("Can't check hand Gesture without InputComponent!"));
 		return false;
 	}
 
 	// Iterate over all input key-sensitivty pairs; will short circuit and return
 	// false if a key is found to be 
-	for (auto& KeyValuePair : Pose.Inputs)
+	for (auto& KeyValuePair : Gesture.Inputs)
 	{
 		FName InputName = KeyValuePair.Key;
 		FVector2D SensitivityRange = KeyValuePair.Value;
@@ -88,10 +88,10 @@ const bool AHarlowHand::IsMakingPose(const FPose& Pose)
 
 			UE_LOG(LogTemp, Log, TEXT("Did satisfy sensitivty range!"))
 		}
-	} // End looping over all Pose inputs
+	} // End looping over all Gesture inputs
 
 	// We didn't return false yet, so all inputs must have been satisfied!
-	UE_LOG(LogTemp, Log, TEXT("Player is making pose '%s'!"), *Pose.Name.ToString());
+	UE_LOG(LogTemp, Log, TEXT("Player is making Gesture '%s'!"), *Gesture.Name.ToString());
 	return true;
 }
 

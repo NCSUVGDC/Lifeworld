@@ -19,11 +19,9 @@ void UGestureVolume::OnBeginOverlap(class UPrimitiveComponent* Self, class AActo
 
 		// Make sure hand is forming poses
 		bool MakingAllPoses = false;
-		for (auto& KeyValuePair : Gesture.Sequence)
+		for (FGesture& Gesture : Gestures)
 		{
-			FPose& Pose = KeyValuePair.Key;
-
-			MakingAllPoses &= OverlappingHand->IsMakingPose(Pose);
+			MakingAllPoses &= OverlappingHand->IsMakingGesture(Gesture);
 		}
 		UE_LOG(LogTemp, Log, TEXT("Making All Poses for GestureVolume: %d"), MakingAllPoses);
 	}
