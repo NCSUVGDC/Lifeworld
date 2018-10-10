@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HarlowHand.h"
+#include "../Interaction/GestureVolume.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 
 // Sets default values
@@ -9,12 +10,19 @@ AHarlowHand::AHarlowHand()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	// Set up the input fingers map
+	InputFingerValues.Empty();
+	InputFingerValues.Add(EGestureFinger::Thumb);
+	InputFingerValues.Add(EGestureFinger::Index);
+	InputFingerValues.Add(EGestureFinger::Middle);
 }
 
 // Called when the game starts or when spawned
 void AHarlowHand::BeginPlay()
 {
 	Super::BeginPlay();
+
+	HandText = (HandSide == EControllerHand::Right ? "Right" : "Left");
 	
 	if (OwningPawn == nullptr)
 	{
@@ -35,59 +43,103 @@ void AHarlowHand::BeginPlay()
 		{
 			UE_LOG(LogTemp, Error, TEXT("Player pawn missing input component!"));
 		}
+		else
+		{
+			SetupPlayerInputComponent();
+		}
 	}
 
 }
 
+void AHarlowHand::SetupPlayerInputComponent()
+{
+	// Note: Does not properly account for EControllerHand values that aren't left or right
+
+	FString Fuck = FString::Printf(TEXT("%s Thumb"), *HandText);
+	FName Shit = FName(*Fuck);
+
+	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Thumb"), *HandText)), this, &AHarlowHand::InputAxisThumb);
+	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Index"), *HandText)), this, &AHarlowHand::InputAxisIndex);
+	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Middle"), *HandText)), this, &AHarlowHand::InputAxisMiddle);
+
+}
+
+void AHarlowHand::InputAxisThumb(float Val)
+{
+	// Detect if the input has changed (since this method is called every frame)
+	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Thumb], INPUT_AXIS_CHANGED_THRESHOLD) == false)
+	{
+		InputFingerValues[EGestureFinger::Thumb] = Val;
+		InputAxisChanged(EGestureFinger::Thumb);
+	}
+}
+
+void AHarlowHand::InputAxisIndex(float Val)
+{
+	// Detect if the input has changed (since this method is called every frame)
+	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Index], INPUT_AXIS_CHANGED_THRESHOLD) == false)
+	{
+		InputFingerValues[EGestureFinger::Index] = Val;
+		InputAxisChanged(EGestureFinger::Index);
+	}
+}
+
+void AHarlowHand::InputAxisMiddle(float Val)
+{
+	// Detect if the input has changed (since this method is called every frame)
+	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Middle], INPUT_AXIS_CHANGED_THRESHOLD) == false)
+	{
+		InputFingerValues[EGestureFinger::Middle] = Val;
+		InputAxisChanged(EGestureFinger::Middle);
+	}
+}
+
+void AHarlowHand::InputAxisChanged(EGestureFinger Finger)
+{
+	for (UGestureVolume* GestureVolume : OverlappedGestureVolumes)
+	{
+		bool MakingGesture = IsMakingGesture(GestureVolume->Gesture);
+
+		if (MakingGesture != GestureVolume->IsGestureMade)
+		{
+			GestureVolume->IsGestureMade = MakingGesture;
+
+			if (MakingGesture == true)
+			{
+				GestureVolume->OnGestureMadeDelegate.Broadcast(this);
+			}
+			else
+			{
+				GestureVolume->OnGestureStoppedDelegate.Broadcast(this);
+			}
+		}
+	}
+}
+
+
 const bool AHarlowHand::IsMakingGesture(const FGesture& Gesture)
 {
-	if (PlayerInput == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Can't check hand Gesture without InputComponent!"));
-		return false;
-	}
-
 	// Iterate over all input key-sensitivty pairs; will short circuit and return
 	// false if a key is found to be 
 	for (auto& KeyValuePair : Gesture.Inputs)
 	{
-		FName InputName = KeyValuePair.Key;
+		EGestureFinger Finger = KeyValuePair.Key;
 		FVector2D SensitivityRange = KeyValuePair.Value;
 
-		UE_LOG(LogTemp, Log, TEXT("Getting Input Axis for '%s'..."), *InputName.ToString())
+		float CurrentFingerInput = InputFingerValues[Finger];
 
-		float CurrentKeyInput = PlayerInput->GetAxisValue(InputName);
-
-		UE_LOG(LogTemp, Log, TEXT("Axis '%s' had value %.2f! Checking if it's within '%s'..."),
-			*InputName.ToString(), CurrentKeyInput, *SensitivityRange.ToString());
-
-
-		// If the key is not within the sensitivity range, immediately return false
-		if (SensitivityRange.IsNearlyZero()) // If sensitivity is undefined, any input value above 0 counts
+		if (CurrentFingerInput < SensitivityRange.X)
 		{
-			if (FMath::IsNearlyZero(CurrentKeyInput))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Did not satisfy (> 0.0) sensitivity range!"));
-				return false;
-			}
-			
-			UE_LOG(LogTemp, Log, TEXT("Did satisfy (> 0.0) sensitivty range!"))
+			//UE_LOG(LogTemp, Warning, TEXT("Did not satisfy sensitivity range (too low)!"));
+			return false;
 		}
-		else // Sensitivity is defined; make sure the current input fits in the range
+		else if (CurrentFingerInput > SensitivityRange.Y)
 		{
-			if (CurrentKeyInput < SensitivityRange.X)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Did not satisfy sensitivity range (too low)!"));
-				return false;
-			}
-			else if (CurrentKeyInput > SensitivityRange.Y)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Did not satisfy sensitivity range (too high)!"));
-				return false;
-			}
-
-			UE_LOG(LogTemp, Log, TEXT("Did satisfy sensitivty range!"))
+			//UE_LOG(LogTemp, Warning, TEXT("Did not satisfy sensitivity range (too high)!"));
+			return false;
 		}
+
+		//UE_LOG(LogTemp, Log, TEXT("Did satisfy sensitivty range!"))
 	} // End looping over all Gesture inputs
 
 	// We didn't return false yet, so all inputs must have been satisfied!

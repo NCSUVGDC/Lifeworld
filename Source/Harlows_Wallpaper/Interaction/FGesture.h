@@ -2,6 +2,19 @@
 #include "CoreMinimal.h"
 #include "FGesture.generated.h"
 
+/** 
+ * Instead of viewing the controller as a bunch of buttons we interpret it as one of these three 
+ * fingers, with the thumb being mapped to the joystick/any face button and the index and middle 
+ * fingers being mapped to their respective triggers
+ */
+UENUM(BlueprintType)
+enum class EGestureFinger : uint8
+{
+	Thumb,
+	Index,
+	Middle
+};
+
 /**
  * A "gesture" is defined as one or more buttons held at a defined sensitivity. 
  * 
@@ -19,13 +32,11 @@ struct FGesture
 		FName Name;
 
 	/**
-	 * Names of each input axis/action that are each needed for this gesture, as well as the min/max 
-	 * sensitivity thresholds for each. A sensitivity threshold of (0, 1) means the input is optional.
-	 * 
-	 * Note: See UPlayerInput.AxisKeyMap and ActionKeyMap for map of input names
+	 * Each finger needed for this gesture, as well as the min/max sensitivity thresholds for each.
+	 * A sensitivity threshold of (0, 1) implies the input is optional.
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
-		TMap<FName, FVector2D> Inputs;
+		TMap<EGestureFinger, FVector2D> Inputs;
 
 	FORCEINLINE bool operator==(const FGesture& Other) const
 	{

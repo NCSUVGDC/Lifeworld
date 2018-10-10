@@ -2,12 +2,13 @@
 
 #include "GestureVolume.h"
 #include "../Harlows_Wallpaper.h"
-#include "../Player/HarlowHand.h"
+
 
 UGestureVolume::UGestureVolume()
 {
 	OnComponentBeginOverlap.AddDynamic(this, &UGestureVolume::OnBeginOverlap);
 	OnGestureMadeDelegate.AddDynamic(this, &UGestureVolume::OnGestureMade);
+	OnGestureStoppedDelegate.AddDynamic(this, &UGestureVolume::OnGestureStopped);
 }
 
 void UGestureVolume::OnBeginOverlap(class UPrimitiveComponent* Self, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, 
@@ -18,13 +19,8 @@ void UGestureVolume::OnBeginOverlap(class UPrimitiveComponent* Self, class AActo
 		// Overlapping actor is a hand 
 		UE_LOG(Interaction, Log, TEXT("Overlapped by hand '%s'!"), *OverlappingHand->GetName());
 
-		// Make sure hand is forming poses
-		bool MakingAllPoses = false;
-		for (FGesture& Gesture : Gestures)
-		{
-			MakingAllPoses &= OverlappingHand->IsMakingGesture(Gesture);
-		}
-		UE_LOG(Interaction, Log, TEXT("Making All Poses for GestureVolume: %d"), MakingAllPoses);
+		OverlappingHand->OverlappedGestureVolumes.Add(this);
+		OverlappingHands.Add(OverlappingHand);
 	}
 	else
 	{
@@ -32,9 +28,28 @@ void UGestureVolume::OnBeginOverlap(class UPrimitiveComponent* Self, class AActo
 	}
 }
 
+void UGestureVolume::OnEndOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if ( AHarlowHand* OverlappingHand = Cast<AHarlowHand>(OtherActor) )
+	{
+		UE_LOG(Interaction, Log, TEXT("No longer overlapped by hand '%s'!"), *OverlappingHand->GetName());
+
+		OverlappingHand->OverlappedGestureVolumes.Remove(this);
+		OverlappingHands.Remove(OverlappingHand);
+	}
+}
+
 /** OnGestureMade is a BlueprintNativeEvent, so we must add "_Implementation" to it's C++ function definition */
-void UGestureVolume::OnGestureMade_Implementation(AHarlowHand* Hand, const FGesture& Gesture)
+void UGestureVolume::OnGestureMade_Implementation(AHarlowHand* Hand)
 {
 	UE_LOG(Interaction, Log, TEXT("Hand '%s' made gesture '%s' in GestureVolume '%s'"), 
+		*Hand->GetName(), *Gesture.Name.ToString(), *this->GetName());
+}
+
+
+/** OnGestureStopped is a BlueprintNativeEvent, so we must add "_Implementation" to it's C++ function definition */
+void UGestureVolume::OnGestureStopped_Implementation(AHarlowHand* Hand)
+{
+	UE_LOG(Interaction, Log, TEXT("Hand '%s' stopped making gesture '%s' in GestureVolume '%s'"), 
 		*Hand->GetName(), *Gesture.Name.ToString(), *this->GetName());
 }
