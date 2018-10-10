@@ -5,8 +5,9 @@
 #include "CoreMinimal.h"
 #include "Components/CapsuleComponent.h"
 #include "FGesture.h"
-#include "FNarrativeEvent.h"
 #include "GestureVolume.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams( FOnGestureMadeDelegate, AHarlowHand*, Hand, const FGesture&, Gesture );
 
 /**
  * A volume that signals events if a hand is in it and is making the appropraite gesture. It is used
@@ -33,12 +34,6 @@ public:
 		TArray<FGesture> Gestures;
 
 	/**
-	 * Event to signal once this gesture has been completed
-	 */
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Harlow")
-		FNarrativeEvent Event;
-
-	/**
 	 * @param Self is necessary as a delegate placeholder
 	 */
 	UFUNCTION(BlueprintCallable)
@@ -47,4 +42,16 @@ public:
 	// UFUNCTION(BlueprintCallable)
 	// 	void OnEndOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	/**
+	 * Called when a hand overlapping this volume makes one of the necessary gestures
+	 * 
+	 * If you want to bind a function in to this (i.e. make your function get called when this one
+	 * gets called), in C++ use (in your class) GestureVolume->OnGestureMade.AddDynamic(this, &AYourClass:YourFunction),
+	 * or in Blueprints use "Bind Event to OnGestureMadeDelegate"
+	 */
+	UPROPERTY(BlueprintAssignable)
+		FOnGestureMadeDelegate OnGestureMadeDelegate;
+	
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+		void OnGestureMade(AHarlowHand* Hand, UPARAM(ref) const FGesture& Gesture);
 };

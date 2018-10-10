@@ -7,6 +7,7 @@
 UGestureVolume::UGestureVolume()
 {
 	OnComponentBeginOverlap.AddDynamic(this, &UGestureVolume::OnBeginOverlap);
+	OnGestureMadeDelegate.AddDynamic(this, &UGestureVolume::OnGestureMade);
 }
 
 void UGestureVolume::OnBeginOverlap(class UPrimitiveComponent* Self, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, 
@@ -23,10 +24,17 @@ void UGestureVolume::OnBeginOverlap(class UPrimitiveComponent* Self, class AActo
 		{
 			MakingAllPoses &= OverlappingHand->IsMakingGesture(Gesture);
 		}
-		UE_LOG(LogTemp, Log, TEXT("Making All Poses for GestureVolume: %d"), MakingAllPoses);
+		UE_LOG(Interaction, Log, TEXT("Making All Poses for GestureVolume: %d"), MakingAllPoses);
 	}
 	else
 	{
 		UE_LOG(Interaction, Log, TEXT("Overlapped by non-hand actor '%s'!"), OtherActor != nullptr ? *OtherActor->GetName() : TEXT("NULL") );
 	}
+}
+
+/** OnGestureMade is a BlueprintNativeEvent, so we must add "_Implementation" to it's C++ function definition */
+void UGestureVolume::OnGestureMade_Implementation(AHarlowHand* Hand, const FGesture& Gesture)
+{
+	UE_LOG(Interaction, Log, TEXT("Hand '%s' made gesture '%s' in GestureVolume '%s'"), 
+		*Hand->GetName(), *Gesture.Name.ToString(), *this->GetName());
 }
