@@ -54,10 +54,7 @@ void AHarlowHand::BeginPlay()
 void AHarlowHand::SetupPlayerInputComponent()
 {
 	// Note: Does not properly account for EControllerHand values that aren't left or right
-
-	FString Fuck = FString::Printf(TEXT("%s Thumb"), *HandText);
-	FName Shit = FName(*Fuck);
-
+	UE_LOG(LogTemp, Log, TEXT("Setting up input for hand '%s'"), *HandText);
 	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Thumb"), *HandText)), this, &AHarlowHand::InputAxisThumb);
 	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Index"), *HandText)), this, &AHarlowHand::InputAxisIndex);
 	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Middle"), *HandText)), this, &AHarlowHand::InputAxisMiddle);
@@ -66,6 +63,7 @@ void AHarlowHand::SetupPlayerInputComponent()
 
 void AHarlowHand::InputAxisThumb(float Val)
 {
+	//UE_LOG(LogTemp, Log, TEXT("%s Thumb: %.3f"), *HandText, Val);
 	// Detect if the input has changed (since this method is called every frame)
 	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Thumb], INPUT_AXIS_CHANGED_THRESHOLD) == false)
 	{
@@ -76,6 +74,7 @@ void AHarlowHand::InputAxisThumb(float Val)
 
 void AHarlowHand::InputAxisIndex(float Val)
 {
+	//UE_LOG(LogTemp, Log, TEXT("%s Index: %.3f"), *HandText, Val);
 	// Detect if the input has changed (since this method is called every frame)
 	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Index], INPUT_AXIS_CHANGED_THRESHOLD) == false)
 	{
@@ -86,6 +85,7 @@ void AHarlowHand::InputAxisIndex(float Val)
 
 void AHarlowHand::InputAxisMiddle(float Val)
 {
+	//UE_LOG(LogTemp, Log, TEXT("%s Middle: %.3f"), *HandText, Val);
 	// Detect if the input has changed (since this method is called every frame)
 	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Middle], INPUT_AXIS_CHANGED_THRESHOLD) == false)
 	{
@@ -96,6 +96,7 @@ void AHarlowHand::InputAxisMiddle(float Val)
 
 void AHarlowHand::InputAxisChanged(EGestureFinger Finger)
 {
+	UE_LOG(LogTemp, Log, TEXT("Finger Input Changed: %d"), (int)Finger);
 	for (UGestureVolume* GestureVolume : OverlappedGestureVolumes)
 	{
 		bool MakingGesture = IsMakingGesture(GestureVolume->Gesture);

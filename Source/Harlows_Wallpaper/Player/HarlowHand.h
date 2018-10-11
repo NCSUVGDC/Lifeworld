@@ -57,8 +57,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Input")
 		TMap<EGestureFinger, float> InputFingerValues;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player")
-		EControllerHand HandSide;
+	/** Set as a default value of "AnyHand" rather than "Left" so it's more obvious to tell if we forgot to set it */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player", META=(ExposeOnSpawn="true"))
+		EControllerHand HandSide = EControllerHand::AnyHand;
 
 	/** 
 	 * The HarlowPawn controlling this Hand
