@@ -2,6 +2,7 @@
 
 #include "HarlowHand.h"
 #include "../Interaction/GestureVolume.h"
+#include "../Harlows_Wallpaper.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 
 // Sets default values
@@ -22,11 +23,16 @@ void AHarlowHand::BeginPlay()
 {
 	Super::BeginPlay();
 
-	HandText = (HandSide == EControllerHand::Right ? "Right" : "Left");
-	
+	HandSideText = (HandSide == EControllerHand::Right ? "Right" : "Left");
+
+	// Add our hand side to tha actor's name
+	FString newName = FString::Printf(TEXT("HarlowHand_%s"), *HandSideText);
+	Rename(*newName);
+	SetActorLabel(*newName, true);
+
 	if (OwningPawn == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("AHarlowHand spawned with no owning pawn!"));
+		UE_LOG(LogTemp, Error, TEXT("'*s' spawned with no owning pawn!"), *GetName());
 	}
 	else
 	{
@@ -54,16 +60,16 @@ void AHarlowHand::BeginPlay()
 void AHarlowHand::SetupPlayerInputComponent()
 {
 	// Note: Does not properly account for EControllerHand values that aren't left or right
-	UE_LOG(LogTemp, Log, TEXT("Setting up input for hand '%s'"), *HandText);
-	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Thumb"), *HandText)), this, &AHarlowHand::InputAxisThumb);
-	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Index"), *HandText)), this, &AHarlowHand::InputAxisIndex);
-	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Middle"), *HandText)), this, &AHarlowHand::InputAxisMiddle);
+	UE_LOG(LogTemp, Log, TEXT("Setting up input for hand '%s'"), *HandSideText);
+	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Thumb"), *HandSideText)), this, &AHarlowHand::InputAxisThumb);
+	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Index"), *HandSideText)), this, &AHarlowHand::InputAxisIndex);
+	PlayerInput->BindAxis(FName(*FString::Printf(TEXT("%s Middle"), *HandSideText)), this, &AHarlowHand::InputAxisMiddle);
 
 }
 
 void AHarlowHand::InputAxisThumb(float Val)
 {
-	//UE_LOG(LogTemp, Log, TEXT("%s Thumb: %.3f"), *HandText, Val);
+	//UE_LOG(LogTemp, Log, TEXT("%s Thumb: %.3f"), *HandSideText, Val);
 	// Detect if the input has changed (since this method is called every frame)
 	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Thumb], INPUT_AXIS_CHANGED_THRESHOLD) == false)
 	{
@@ -74,7 +80,7 @@ void AHarlowHand::InputAxisThumb(float Val)
 
 void AHarlowHand::InputAxisIndex(float Val)
 {
-	//UE_LOG(LogTemp, Log, TEXT("%s Index: %.3f"), *HandText, Val);
+	//UE_LOG(LogTemp, Log, TEXT("%s Index: %.3f"), *HandSideText, Val);
 	// Detect if the input has changed (since this method is called every frame)
 	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Index], INPUT_AXIS_CHANGED_THRESHOLD) == false)
 	{
@@ -85,7 +91,7 @@ void AHarlowHand::InputAxisIndex(float Val)
 
 void AHarlowHand::InputAxisMiddle(float Val)
 {
-	//UE_LOG(LogTemp, Log, TEXT("%s Middle: %.3f"), *HandText, Val);
+	//UE_LOG(LogTemp, Log, TEXT("%s Middle: %.3f"), *HandSideText, Val);
 	// Detect if the input has changed (since this method is called every frame)
 	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Middle], INPUT_AXIS_CHANGED_THRESHOLD) == false)
 	{
@@ -96,7 +102,7 @@ void AHarlowHand::InputAxisMiddle(float Val)
 
 void AHarlowHand::InputAxisChanged(EGestureFinger Finger)
 {
-	UE_LOG(LogTemp, Log, TEXT("Finger Input Changed: %d"), (int)Finger);
+	UE_LOG(Interaction, Log, TEXT("Finger Input Changed: %d"), (int)Finger);
 	for (UGestureVolume* GestureVolume : OverlappedGestureVolumes)
 	{
 		bool MakingGesture = IsMakingGesture(GestureVolume->Gesture);
@@ -144,7 +150,7 @@ const bool AHarlowHand::IsMakingGesture(const FGesture& Gesture)
 	} // End looping over all Gesture inputs
 
 	// We didn't return false yet, so all inputs must have been satisfied!
-	UE_LOG(LogTemp, Log, TEXT("Player is making Gesture '%s'!"), *Gesture.Name.ToString());
+	UE_LOG(Interaction, Log, TEXT("Player is making Gesture '%s'!"), *Gesture.Name.ToString());
 	return true;
 }
 

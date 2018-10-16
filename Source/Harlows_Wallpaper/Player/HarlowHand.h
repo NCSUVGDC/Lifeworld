@@ -28,7 +28,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	/** "Right" or "Left", assigned on BeginPlay based on HandSide */
-	FString HandText;
+	FString HandSideText;
 
 	/** Cached to make accessing the user's input easier */
 	APlayerController* PlayerController;
