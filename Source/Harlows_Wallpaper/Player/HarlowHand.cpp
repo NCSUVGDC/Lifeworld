@@ -102,15 +102,19 @@ void AHarlowHand::InputAxisMiddle(float Val)
 
 void AHarlowHand::InputAxisChanged(EGestureFinger Finger)
 {
-	UE_LOG(Interaction, Log, TEXT("Finger Input Changed: %d"), (int)Finger);
+	UE_LOG(Interaction, Log, TEXT("Finger Input Changed: %d (now %.2f)"), (int)Finger, InputFingerValues[Finger]);
 	for (UGestureVolume* GestureVolume : OverlappedGestureVolumes)
 	{
 		bool MakingGesture = IsMakingGesture(GestureVolume->Gesture);
 
+		// Tell the volume if the gesture changed status
 		if (MakingGesture != GestureVolume->IsGestureMade)
 		{
 			GestureVolume->IsGestureMade = MakingGesture;
-
+			UE_LOG(LogTemp, Log, TEXT("Gesture '%s' on volume '%s' changed to '%s'"),
+				*GestureVolume->Gesture.Name.ToString(), 
+				*GestureVolume->GetName(), 
+				MakingGesture ? TEXT("true") : TEXT("false") );
 			if (MakingGesture == true)
 			{
 				GestureVolume->OnGestureMadeDelegate.Broadcast(this);
@@ -135,15 +139,21 @@ const bool AHarlowHand::IsMakingGesture(const FGesture& Gesture)
 
 		float CurrentFingerInput = InputFingerValues[Finger];
 
-		if (CurrentFingerInput < SensitivityRange.X)
+		// TODO it would make more sense if this comparison logic was in FGesture's code...
+		if (CurrentFingerInput <= SensitivityRange.X)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Did not satisfy sensitivity range (too low)!"));
+			//UE_LOG(Interaction, Warning, TEXT("Did not satisfy sensitivity range (too low)!"));
 			return false;
 		}
 		else if (CurrentFingerInput > SensitivityRange.Y)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Did not satisfy sensitivity range (too high)!"));
+			//UE_LOG(Interaction, Warning, TEXT("Did not satisfy sensitivity range (too high)!"));
 			return false;
+		}
+		else
+		{
+			//UE_LOG(Interaction, Log, TEXT("Detecting finger '%d' input value '%.2f' to be within limits '%s'"), 
+			//	(int)Finger, CurrentFingerInput, *SensitivityRange.ToString());
 		}
 
 		//UE_LOG(LogTemp, Log, TEXT("Did satisfy sensitivty range!"))
