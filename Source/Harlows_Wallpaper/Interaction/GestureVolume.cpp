@@ -11,6 +11,18 @@ UGestureVolume::UGestureVolume()
 	OnGestureStoppedDelegate.AddDynamic(this, &UGestureVolume::OnGestureStopped);
 }
 
+void UGestureVolume::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+FString UGestureVolume::ToString() const
+{
+	return FString::Printf(TEXT("%s_GestVol_%s"), 
+		GetOwner() == nullptr ? TEXT("null") : *(GetOwner()->GetName()),
+		*Gesture.Name.ToString());
+}
+
 void UGestureVolume::OnBeginOverlap(class UPrimitiveComponent* Self, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, 
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {

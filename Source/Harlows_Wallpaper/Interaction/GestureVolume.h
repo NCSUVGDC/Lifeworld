@@ -23,9 +23,17 @@ class HARLOWS_WALLPAPER_API UGestureVolume : public UCapsuleComponent
 {
 	GENERATED_BODY()
 	
-public:
+protected:
+	virtual void BeginPlay() override;
 
+public:
 	UGestureVolume();
+
+	/** 
+	 * Outputs "<OwningActor>_GestVol_<GestureName>"
+	 * The fact that this isn't an override is a bit odd to me. Maybe we should rename it?
+	 */
+	virtual FString ToString() const;
 
 	/**
 	 * The gesture that needs to be completed in this volume to signal the event
@@ -77,4 +85,5 @@ public:
 	
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 		void OnGestureStopped(AHarlowHand* Hand);
+
 };

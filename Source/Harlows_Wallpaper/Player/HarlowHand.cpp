@@ -103,7 +103,7 @@ void AHarlowHand::InputAxisMiddle(float Val)
 
 void AHarlowHand::InputAxisChanged(EGestureFinger Finger)
 {
-	UE_LOG(Interaction, Log, TEXT("Finger Input Changed: '%s' (now %.2f)"), 
+	UE_LOG(Interaction, Log, TEXT("Finger Input Changed: '%s %s' (now %.2f)"), *HandSideText,
 		*UMiscFunctionLibrary::EnumToString("EGestureFinger", Finger), InputFingerValues[Finger]);
 	for (UGestureVolume* GestureVolume : OverlappedGestureVolumes)
 	{
@@ -114,7 +114,7 @@ void AHarlowHand::InputAxisChanged(EGestureFinger Finger)
 		{
 			GestureVolume->IsGestureMade = MakingGesture;
 			UE_LOG(Interaction, Log, TEXT("Gesture '%s' on volume '%s' changed to '%s'"),
-				*GestureVolume->Gesture.Name.ToString(), *GestureVolume->GetName(), BoolToTEXT(MakingGesture) );
+				*GestureVolume->Gesture.Name.ToString(), *GestureVolume->ToString(), BoolToTEXT(MakingGesture) );
 			if (MakingGesture == true)
 			{
 				GestureVolume->OnGestureMadeDelegate.Broadcast(this);
