@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Runtime/InputCore/Classes/InputCoreTypes.h" // for EControllerHand
 #include "Components/CapsuleComponent.h"
 #include "FGesture.h"
 #include "../Player/HarlowHand.h"
@@ -42,14 +43,23 @@ public:
 		FGesture Gesture;
 
 	/**
-	 * Is the gesture currently being made?
+	 * Is the gesture currently being made for either hand?
 	 */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Interaction")
-		bool IsGestureMade = false;
+		TMap<EControllerHand, bool> IsGestureMade;
 
-	/** Any hands overlapping this volume */
+	/** Any hands overlapping this volume (regardless of whether they're making the gesture) */
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Interaction")
 		TSet<AHarlowHand*> OverlappingHands;
+
+	/**
+	 * Called by AHarlowHand when it detects a change in input. This does not mean that the gesture
+	 * changed state from being made -> not being made (or vice versa), rather that it _may_ have
+	 * 
+	 * @return True if the gesture changed status (being made -> not being made or vice versa)
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Interaction")
+		bool NotifyGestureStatus(AHarlowHand* Hand, bool GestureMade);
 
 	/**
 	 * @param Self is necessary as a delegate placeholder

@@ -108,22 +108,7 @@ void AHarlowHand::InputAxisChanged(EGestureFinger Finger)
 	for (UGestureVolume* GestureVolume : OverlappedGestureVolumes)
 	{
 		bool MakingGesture = IsMakingGesture(GestureVolume->Gesture);
-
-		// Tell the volume if the gesture changed status
-		if (MakingGesture != GestureVolume->IsGestureMade)
-		{
-			GestureVolume->IsGestureMade = MakingGesture;
-			UE_LOG(Interaction, Log, TEXT("Gesture '%s' on volume '%s' changed to '%s'"),
-				*GestureVolume->Gesture.Name.ToString(), *GestureVolume->ToString(), BoolToTEXT(MakingGesture) );
-			if (MakingGesture == true)
-			{
-				GestureVolume->OnGestureMadeDelegate.Broadcast(this);
-			}
-			else
-			{
-				GestureVolume->OnGestureStoppedDelegate.Broadcast(this);
-			}
-		}
+		GestureVolume->NotifyGestureStatus(this, MakingGesture);
 	}
 }
 

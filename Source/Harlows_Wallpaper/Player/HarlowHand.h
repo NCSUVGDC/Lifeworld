@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Runtime/InputCore/Classes/InputCoreTypes.h"
+#include "Runtime/InputCore/Classes/InputCoreTypes.h" // for EControllerHand
 #include "HarlowPawn.h"
 #include "../Interaction/FGesture.h"
 #include "HarlowHand.generated.h"
