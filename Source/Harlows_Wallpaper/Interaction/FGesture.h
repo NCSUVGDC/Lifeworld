@@ -10,6 +10,11 @@
 UENUM(BlueprintType)
 enum class EGestureFinger : uint8
 {
+	UNDEFINED,  // Added this because when using Maps in UE4 (as we often do with this enum) the
+	            // keys must all be unique. So, if you already had "Thumb" (the default otherwise)
+	            // in a map, the engine will prevent you from adding another finger as the new 
+	            // finger will be "Thumb" by default
+	
 	Thumb,
 	Index,
 	Middle

@@ -3,6 +3,7 @@
 #include "HarlowHand.h"
 #include "../Interaction/GestureVolume.h"
 #include "../Harlows_Wallpaper.h"
+#include "../Core/MiscFunctionLibrary.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 
 // Sets default values
@@ -102,7 +103,8 @@ void AHarlowHand::InputAxisMiddle(float Val)
 
 void AHarlowHand::InputAxisChanged(EGestureFinger Finger)
 {
-	UE_LOG(Interaction, Log, TEXT("Finger Input Changed: %d (now %.2f)"), (int)Finger, InputFingerValues[Finger]);
+	UE_LOG(Interaction, Log, TEXT("Finger Input Changed: '%s' (now %.2f)"), 
+		*UMiscFunctionLibrary::EnumToString("EGestureFinger", Finger), InputFingerValues[Finger]);
 	for (UGestureVolume* GestureVolume : OverlappedGestureVolumes)
 	{
 		bool MakingGesture = IsMakingGesture(GestureVolume->Gesture);
@@ -111,10 +113,8 @@ void AHarlowHand::InputAxisChanged(EGestureFinger Finger)
 		if (MakingGesture != GestureVolume->IsGestureMade)
 		{
 			GestureVolume->IsGestureMade = MakingGesture;
-			UE_LOG(LogTemp, Log, TEXT("Gesture '%s' on volume '%s' changed to '%s'"),
-				*GestureVolume->Gesture.Name.ToString(), 
-				*GestureVolume->GetName(), 
-				MakingGesture ? TEXT("true") : TEXT("false") );
+			UE_LOG(Interaction, Log, TEXT("Gesture '%s' on volume '%s' changed to '%s'"),
+				*GestureVolume->Gesture.Name.ToString(), *GestureVolume->GetName(), BoolToTEXT(MakingGesture) );
 			if (MakingGesture == true)
 			{
 				GestureVolume->OnGestureMadeDelegate.Broadcast(this);
