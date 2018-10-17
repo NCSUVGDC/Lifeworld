@@ -29,12 +29,20 @@ protected:
 
 public:
 	UGestureVolume();
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/** 
 	 * Outputs "<OwningActor>_GestVol_<GestureName>"
 	 * The fact that this isn't an override is a bit odd to me. Maybe we should rename it?
 	 */
 	virtual FString ToString() const;
+
+	/** Shows the volume's capsule boundaries */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug")
+		bool DebugDrawCapsule = false;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug", META=(EditCondition="DebugDrawCapsule"))
+		FColor DebugCapsuleColor = FColor(64, 64, 255);
 
 	/**
 	 * The gesture that needs to be completed in this volume to signal the event

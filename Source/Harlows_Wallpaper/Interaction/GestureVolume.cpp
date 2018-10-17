@@ -2,11 +2,14 @@
 
 #include "GestureVolume.h"
 #include "../Core/MiscFunctionLibrary.h"
+#include "Runtime/Engine/Public/DrawDebugHelpers.h"
 #include "../Harlows_Wallpaper.h"
 
 
 UGestureVolume::UGestureVolume()
 {
+	PrimaryComponentTick.bCanEverTick = true;
+
 	OnComponentBeginOverlap.AddDynamic(this, &UGestureVolume::OnBeginOverlap);
 	OnGestureMadeDelegate.AddDynamic(this, &UGestureVolume::OnGestureMade);
 	OnGestureStoppedDelegate.AddDynamic(this, &UGestureVolume::OnGestureStopped);
@@ -26,8 +29,16 @@ void UGestureVolume::BeginPlay()
 FString UGestureVolume::ToString() const
 {
 	return FString::Printf(TEXT("%s_GestVol_%s"), 
-		GetOwner() == nullptr ? TEXT("null") : *(GetOwner()->GetName()),
+		GetOwner() == nullptr ? TEXT("null") : *(GetOwner()->GetName()), 
 		*Gesture.Name.ToString());
+}
+
+void UGestureVolume::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (DebugDrawCapsule)
+		DrawDebugCapsule(GetWorld(), GetComponentLocation(), GetScaledCapsuleHalfHeight(), GetScaledCapsuleRadius(), GetComponentTransform().GetRotation(), DebugCapsuleColor, false, -1.0f, 0, 2.0f );
 }
 
 bool UGestureVolume::NotifyGestureStatus(AHarlowHand* Hand, bool GestureMade)
