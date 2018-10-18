@@ -11,6 +11,7 @@ UGestureVolume::UGestureVolume()
 	PrimaryComponentTick.bCanEverTick = true;
 
 	OnComponentBeginOverlap.AddDynamic(this, &UGestureVolume::OnBeginOverlap);
+	OnComponentEndOverlap.AddDynamic(this, &UGestureVolume::OnEndOverlap);
 	OnGestureMadeDelegate.AddDynamic(this, &UGestureVolume::OnGestureMade);
 	OnGestureStoppedDelegate.AddDynamic(this, &UGestureVolume::OnGestureStopped);
 
@@ -95,7 +96,7 @@ void UGestureVolume::OnBeginOverlap(class UPrimitiveComponent* Self, class AActo
 	}
 }
 
-void UGestureVolume::OnEndOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+void UGestureVolume::OnEndOverlap(class UPrimitiveComponent* Self, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if ( AHarlowHand* OverlappingHand = Cast<AHarlowHand>(OtherActor) )
 	{

@@ -75,8 +75,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void OnBeginOverlap(class UPrimitiveComponent* Self, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
+	/**
+	 * @param Self is necessary as a delegate placeholder
+	 */
 	UFUNCTION(BlueprintCallable)
-		void OnEndOverlap(class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+		void OnEndOverlap(class UPrimitiveComponent* Self, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	/**
 	 * Called when a hand overlapping this volume makes the gesture
