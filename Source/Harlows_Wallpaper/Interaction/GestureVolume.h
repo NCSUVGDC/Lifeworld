@@ -50,6 +50,13 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Interaction")
 		FGesture Gesture;
 
+	/** 
+	 * If the player is making the gesture before moving into this volume, should we count it?
+	 * Otherwise, if false, the player must (re)make the gesture after their hand enters the volume
+	 */
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Interaction")
+		bool AllowPremadeGesture = false;
+
 	/**
 	 * Is the gesture currently being made for either hand?
 	 */

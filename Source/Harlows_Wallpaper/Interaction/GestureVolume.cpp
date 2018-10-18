@@ -89,6 +89,9 @@ void UGestureVolume::OnBeginOverlap(class UPrimitiveComponent* Self, class AActo
 
 		OverlappingHand->OverlappedGestureVolumes.Add(this);
 		OverlappingHands.Add(OverlappingHand);
+
+		// Player entering the volume -> gesture might be made, let's check!
+		NotifyGestureStatus(OverlappingHand, AllowPremadeGesture && OverlappingHand->IsMakingGesture(Gesture));
 	}
 	else
 	{
@@ -104,6 +107,9 @@ void UGestureVolume::OnEndOverlap(class UPrimitiveComponent* Self, class AActor*
 
 		OverlappingHand->OverlappedGestureVolumes.Remove(this);
 		OverlappingHands.Remove(OverlappingHand);
+
+		// Player leaving the volume -> gesture no longer made in this volume
+		NotifyGestureStatus(OverlappingHand, false);
 	}
 }
 
