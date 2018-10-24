@@ -15,7 +15,6 @@ ASymptomsManager::ASymptomsManager()
 void ASymptomsManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void ASymptomsManager::RemoveSymptomFromActor(AActor * TaggedActor)
@@ -27,6 +26,10 @@ void ASymptomsManager::RemoveSymptomFromActor(AActor * TaggedActor)
 void ASymptomsManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	// Scan for new tags
+	// create a struct for each
+	// add to active symptoms array
+	// add to active symptoms array
 
 }
 
@@ -37,7 +40,11 @@ void ASymptomsManager::AddActorWithActiveSymptom(const AActor * SymptomActor)
 
 void ASymptomsManager::RemoveExpiredSymptoms()
 {
-	// TODO
+	for (FSymptom s : SymptomActors)
+	{
+		if (s.Duration.GetTotalSeconds() < 0.0)
+			SymptomActors.Remove(s);
+	}
 }
 
 void ASymptomsManager::TagActorWithSymptom(AActor * Actor, ESymptomTypes SymptomType)
