@@ -124,8 +124,12 @@ const bool AHarlowHand::IsMakingGesture(const FGesture& Gesture)
 
 		float CurrentFingerInput = InputFingerValues[Finger];
 
+		// TODO The Index trigger doesn't drop to 0.00000 always, tends to be a little less than 0.001
+		// Can either make sure Index inputs in the inspector are set to be 0.001 instead of 0.0,
+		//     or change this logic to only consider precision to the first 3 decimal places (probably the better idea, no need to remember to use 0.001 and we can explain why in that one spot)
 		// TODO it would make more sense if this comparison logic was in FGesture's code...
-		if (CurrentFingerInput <= SensitivityRange.X)
+		// CurrentFingerInput <= SensitivityRange.X, accounting for floating point inaccuracies (actually gave issues this time when the lower bound was 0.0)
+		if (CurrentFingerInput < SensitivityRange.X || FMath::IsNearlyEqual(CurrentFingerInput, SensitivityRange.X))
 		{
 			//UE_LOG(Interaction, Warning, TEXT("Did not satisfy sensitivity range (too low)!"));
 			return false;
@@ -137,8 +141,8 @@ const bool AHarlowHand::IsMakingGesture(const FGesture& Gesture)
 		}
 		else
 		{
-			//UE_LOG(Interaction, Log, TEXT("Detecting finger '%d' input value '%.2f' to be within limits '%s'"), 
-			//	(int)Finger, CurrentFingerInput, *SensitivityRange.ToString());
+			UE_LOG(Interaction, Log, TEXT("Detecting finger '%s' input value '%f' to be within limits '%s'"), 
+				EnumToTEXT("EGestureFinger", Finger), CurrentFingerInput, *SensitivityRange.ToString());
 		}
 
 		//UE_LOG(LogTemp, Log, TEXT("Did satisfy sensitivty range!"))

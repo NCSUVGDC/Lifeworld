@@ -18,6 +18,11 @@
  */
 #define BoolToTEXT(boolval) (UTF8_TO_TCHAR(BoolToCString(boolval)))
 
+/**
+ * Converts an enum to the UE4 TChar*, needed for string formatting/logging
+ */
+#define EnumToTEXT(EnumName, EnumVal) (*UMiscFunctionLibrary::EnumToString(EnumName, EnumVal))
+
 /**1
  * Generic useful functions
  */
@@ -31,6 +36,8 @@ public:
 	/**
 	 * Converts the enum value to a string. 
 	 * E.g. EnumToString("EGestureFinger", EnumVariableSetToIndex) outputs "Index"
+	 * 
+	 * See also the EnumtoTEXT macro at the top of this file for a shortcut
 	 * 
 	 * https://answers.unrealengine.com/questions/330496/conversion-of-enum-to-string.html
 	 */
