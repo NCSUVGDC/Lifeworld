@@ -6,18 +6,17 @@
 #include "GameFramework/Actor.h"
 #include "SymptomsManager.generated.h"
 
-// Not sure if this fits in with gameplay tags.
-// Need to explore this further
-UENUM(BlueprintType)
-enum ESymptomTypes
-{
-	FLEE	UMETA(DisplayName = "Flee")
-};
-
 USTRUCT()
 struct FSymptom
 {
 	GENERATED_BODY()
+	UFUNCTION()
+	FSymptom(AActor* SymptomActor) : TaggedActor(SymptomActor)
+	{
+		// 10 seconds for now; need to update with actual symptom->timeDuration
+		// once function table is mapped
+		Duration = FTimespan::FTimespan(0, 0, 10);
+	}
 
 	UPROPERTY()
 	// actor affected by a symptom
@@ -56,7 +55,7 @@ public:
 
 	// Adds an Actor with an active symptom
 	UFUNCTION(BlueprintCallable, Category="SymptomManager")
-	void AddActorWithActiveSymptom(const AActor* SymptomActor);
+	void AddActorsWithActiveSymptoms();
 
 	// Removes actors with an expired symptom
 	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
@@ -64,5 +63,5 @@ public:
 
 	// Tags an actor with a Symptom
 	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
-	void TagActorWithSymptom(AActor* Actor, ESymptomTypes SymptomType); // may change
+	void TagActorWithSymptom(AActor* Actor, FName SymptomTag); // may change
 };

@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SymptomsManager.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
 
 
 // Sets default values
@@ -19,23 +21,35 @@ void ASymptomsManager::BeginPlay()
 
 void ASymptomsManager::RemoveSymptomFromActor(AActor * TaggedActor)
 {
-	// TODO
+	// TODO: May not be needed (see below)
 }
 
 // Called every frame
 void ASymptomsManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	// Scan for new tags
-	// create a struct for each
-	// add to active symptoms array
-	// add to active symptoms array
-
+	AddActorsWithActiveSymptoms();
+	RemoveExpiredSymptoms();
 }
 
-void ASymptomsManager::AddActorWithActiveSymptom(const AActor * SymptomActor)
+void ASymptomsManager::AddActorsWithActiveSymptoms()
 {
-	// TODO
+	// Scan for new tags
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), FoundActors);
+
+	// Add actor to symptom array
+	for (AActor* SymptomActor : FoundActors)
+	{
+		TArray<FName> Tags = SymptomActor->Tags;
+		// check for active symptoms
+		if (Tags.Num() != 0)
+		{
+			// add symptoms and remove tags
+			SymptomActors.Add(FSymptom(SymptomActor));
+			SymptomActor->Tags.Empty();
+		}
+	}
 }
 
 void ASymptomsManager::RemoveExpiredSymptoms()
@@ -47,7 +61,7 @@ void ASymptomsManager::RemoveExpiredSymptoms()
 	}
 }
 
-void ASymptomsManager::TagActorWithSymptom(AActor * Actor, ESymptomTypes SymptomType)
+void ASymptomsManager::TagActorWithSymptom(AActor * Actor, FName SymptomTag)
 {
 	// TODO
 }
