@@ -9,7 +9,14 @@
 #include "../Interaction/FGesture.h"
 #include "HarlowHand.generated.h"
 
-#define INPUT_AXIS_CHANGED_THRESHOLD 0.001f
+/** 
+ * Used to decide whether an axis' value has changed by an appreciable amount, or if the axis is
+ * close enough to a SensitivityRange. This value was determined by experimental observation - for
+ * example, when you fully release the index triggers for the Oculus Touch they never go to 0, but
+ * never seem to go about 0.001 (e.g. when fully released the axis value will be 0.000726, 0.000044,
+ * etc...)
+ */
+#define INPUT_AXIS_THRESHOLD 0.001f
 
 UCLASS()
 class HARLOWS_WALLPAPER_API AHarlowHand : public AActor

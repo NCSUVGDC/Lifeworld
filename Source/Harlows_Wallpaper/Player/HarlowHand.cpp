@@ -72,7 +72,7 @@ void AHarlowHand::InputAxisThumb(float Val)
 {
 	//UE_LOG(LogTemp, Log, TEXT("%s Thumb: %.3f"), *HandSideText, Val);
 	// Detect if the input has changed (since this method is called every frame)
-	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Thumb], INPUT_AXIS_CHANGED_THRESHOLD) == false)
+	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Thumb], INPUT_AXIS_THRESHOLD) == false)
 	{
 		InputFingerValues[EGestureFinger::Thumb] = Val;
 		InputAxisChanged(EGestureFinger::Thumb);
@@ -83,7 +83,7 @@ void AHarlowHand::InputAxisIndex(float Val)
 {
 	//UE_LOG(LogTemp, Log, TEXT("%s Index: %.3f"), *HandSideText, Val);
 	// Detect if the input has changed (since this method is called every frame)
-	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Index], INPUT_AXIS_CHANGED_THRESHOLD) == false)
+	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Index], INPUT_AXIS_THRESHOLD) == false)
 	{
 		InputFingerValues[EGestureFinger::Index] = Val;
 		InputAxisChanged(EGestureFinger::Index);
@@ -94,7 +94,7 @@ void AHarlowHand::InputAxisMiddle(float Val)
 {
 	//UE_LOG(LogTemp, Log, TEXT("%s Middle: %.3f"), *HandSideText, Val);
 	// Detect if the input has changed (since this method is called every frame)
-	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Middle], INPUT_AXIS_CHANGED_THRESHOLD) == false)
+	if (FMath::IsNearlyEqual(Val, InputFingerValues[EGestureFinger::Middle], INPUT_AXIS_THRESHOLD) == false)
 	{
 		InputFingerValues[EGestureFinger::Middle] = Val;
 		InputAxisChanged(EGestureFinger::Middle);
@@ -124,12 +124,9 @@ const bool AHarlowHand::IsMakingGesture(const FGesture& Gesture)
 
 		float CurrentFingerInput = InputFingerValues[Finger];
 
-		// TODO The Index trigger doesn't drop to 0.00000 always, tends to be a little less than 0.001
-		// Can either make sure Index inputs in the inspector are set to be 0.001 instead of 0.0,
-		//     or change this logic to only consider precision to the first 3 decimal places (probably the better idea, no need to remember to use 0.001 and we can explain why in that one spot)
 		// TODO it would make more sense if this comparison logic was in FGesture's code...
 		// CurrentFingerInput <= SensitivityRange.X, accounting for floating point inaccuracies (actually gave issues this time when the lower bound was 0.0)
-		if (CurrentFingerInput < SensitivityRange.X || FMath::IsNearlyEqual(CurrentFingerInput, SensitivityRange.X))
+		if (CurrentFingerInput < SensitivityRange.X || FMath::IsNearlyEqual(CurrentFingerInput, SensitivityRange.X, INPUT_AXIS_THRESHOLD))
 		{
 			//UE_LOG(Interaction, Warning, TEXT("Did not satisfy sensitivity range (too low)!"));
 			return false;
@@ -158,6 +155,7 @@ void AHarlowHand::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Sample code using input-keys instead of project-based named inputs
 	//if (PlayerController != nullptr)
 	//{
 	//	UE_LOG(LogTemp, Warning, TEXT("Right Thumbstick X: %.3f ; Right Facebutton 1: %.3f"),

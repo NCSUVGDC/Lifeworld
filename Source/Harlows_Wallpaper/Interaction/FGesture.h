@@ -39,7 +39,7 @@ struct FGesture
 	/**
 	 * Each finger needed for this gesture, as well as the min/max sensitivity thresholds for each.
 	 * The min value is exclusive, the max value is inclusive; e.g. for the range (0, 1), the inputs
-	 * from 0.00...001 to 1.0 will work, but the input 0.0 will not.
+	 * from 0.001 to 1.0 will work, but the input 0.0 will not.
 	 * A sensitivity threshold of ( < 0, 1) implies the input is optional.
 	 */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
