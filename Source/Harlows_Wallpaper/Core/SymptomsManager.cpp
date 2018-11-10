@@ -4,7 +4,6 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
 
-
 // Sets default values
 ASymptomsManager::ASymptomsManager()
 {
@@ -19,16 +18,14 @@ void ASymptomsManager::BeginPlay()
 	Super::BeginPlay();
 }
 
-void ASymptomsManager::RemoveSymptomFromActor(AActor * TaggedActor)
-{
-	// TODO: May not be needed (see below)
-}
-
 // Called every frame
 void ASymptomsManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 	AddActorsWithActiveSymptoms();
+	DisplayActiveSymptoms();
+	ExpireActiveSymptoms();
 	RemoveExpiredSymptoms();
 }
 
@@ -40,29 +37,59 @@ void ASymptomsManager::AddActorsWithActiveSymptoms()
 
 	// Add actor to symptom array
 	for (AActor* SymptomActor : FoundActors)
-	{
+	{	
 		TArray<FName> Tags = SymptomActor->Tags;
 		// check for active symptoms
 		if (Tags.Num() != 0)
 		{
-			// add symptoms and remove tags
-			SymptomActors.Add(FSymptom(SymptomActor));
-			SymptomActor->Tags.Empty();
+			for (FName Symptom : Tags)
+			{
+				FTimespan Duration = *(SymptomUtilitiesManager::SymptomDurations.Find(Symptom));
+				int32 Effect = *(SymptomUtilitiesManager::SymptomFunctionIndexes.Find(Symptom));
+
+				// add symptom and remove tags
+				SymptomActors.Add(FSymptom(SymptomActor, Duration, Effect));
+				UE_LOG(LogTemp, Warning, TEXT("Added %s to active symptoms"), *(SymptomActor->GetName()));
+				SymptomActor->Tags.Empty();
+			}
 		}
 	}
 }
 
 void ASymptomsManager::RemoveExpiredSymptoms()
 {
-	for (FSymptom s : SymptomActors)
+	int32 Length = SymptomActors.Num();
+	for (int i = 0; i < Length; ++i)
 	{
-		if (s.Duration.GetTotalSeconds() < 0.0)
-			SymptomActors.Remove(s);
+		FSymptom Symptom = SymptomActors[i]; // cache for updating
+		if (Symptom.Duration.GetTotalSeconds() < 0.0)
+		{
+			SymptomActors.Remove(Symptom); // remove expired symptom
+			Length = SymptomActors.Num();  // update length
+			UE_LOG(LogTemp, Warning, TEXT("%s with Symptom ID %d expired"), *(Symptom.SymptomActor->GetName()), Symptom.SymptomEffectIndex);
+		}
 	}
 }
 
-void ASymptomsManager::TagActorWithSymptom(AActor * Actor, FName SymptomTag)
+void ASymptomsManager::TagActorWithSymptom(AActor* ActorToTag, FName SymptomTag)
 {
-	// TODO
+	ActorToTag->Tags.Add(SymptomTag);
+}
+
+void ASymptomsManager::DisplayActiveSymptoms()
+{
+	for (FSymptom SymptomActor : SymptomActors)
+	{
+		SymptomUtilitiesManager::GetInstance()->DisplaySymptom(SymptomActor.SymptomEffectIndex, SymptomActor.SymptomActor);
+	}
+}
+
+void ASymptomsManager::ExpireActiveSymptoms()
+{
+	static FTimespan Decrement = FTimespan(0, 0, 1); // decrement a second each expiration
+	for (int i = 0; i < SymptomActors.Num(); ++i)
+	{
+		SymptomActors[i].Duration -= Decrement;
+	}
 }
 

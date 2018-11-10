@@ -4,26 +4,32 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "SymptomUtilitiesManager.h"
 #include "SymptomsManager.generated.h"
 
 USTRUCT()
 struct FSymptom
 {
 	GENERATED_BODY()
-	UFUNCTION()
-	FSymptom(AActor* SymptomActor) : TaggedActor(SymptomActor)
-	{
-		// 10 seconds for now; need to update with actual symptom->timeDuration
-		// once function table is mapped
-		Duration = FTimespan::FTimespan(0, 0, 10);
-	}
 
 	UPROPERTY()
 	// actor affected by a symptom
-	AActor* TaggedActor;
+	AActor* SymptomActor;
 	UPROPERTY()
 	// duration of the symptom
 	FTimespan Duration;
+	UPROPERTY()
+	// symptom effect index
+	int32 SymptomEffectIndex;
+
+	FSymptom(AActor* TaggedActor, FTimespan SymptomDuration, int32 EffectIndex)
+		: SymptomActor(TaggedActor), Duration(SymptomDuration), SymptomEffectIndex(EffectIndex) {}
+	FSymptom() : SymptomActor(NULL), Duration(FTimespan(0, 0, 10)), SymptomEffectIndex(0) {}
+
+	FORCEINLINE bool operator==(const FSymptom& rhs)
+	{
+		return (this->SymptomActor == rhs.SymptomActor) && (this->SymptomEffectIndex == rhs.SymptomEffectIndex);
+	}
 };
 
 UCLASS()
@@ -34,34 +40,34 @@ class HARLOWS_WALLPAPER_API ASymptomsManager : public AActor
 private:
 	// Array of actors with active Symptoms
 	UPROPERTY()
-	TArray<FSymptom> SymptomActors;
+		TArray<FSymptom> SymptomActors;
 
-public:	
-	// Sets default values for this actor's properties
-	ASymptomsManager();
+	UFUNCTION()
+		void DisplayActiveSymptoms();
+
+	UFUNCTION()
+		void ExpireActiveSymptoms();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-private:
-	// Removes specified symptom from the tagged actor.
-	// Mainly used when adding newly tagged actors to symptom array
-	void RemoveSymptomFromActor(AActor* TaggedActor); // may change
+public:
+	// Sets default values for this actor's properties
+	ASymptomsManager();
 
-public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Adds an Actor with an active symptom
-	UFUNCTION(BlueprintCallable, Category="SymptomManager")
-	void AddActorsWithActiveSymptoms();
+	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
+		void AddActorsWithActiveSymptoms();
 
 	// Removes actors with an expired symptom
 	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
-	void RemoveExpiredSymptoms();
+		void RemoveExpiredSymptoms();
 
 	// Tags an actor with a Symptom
 	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
-	void TagActorWithSymptom(AActor* Actor, FName SymptomTag); // may change
+		void TagActorWithSymptom(AActor* Actor, FName SymptomTag);
 };
