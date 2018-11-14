@@ -62,11 +62,11 @@ void ASymptomsManager::RemoveExpiredSymptoms()
 	for (int i = 0; i < Length; ++i)
 	{
 		FSymptom Symptom = SymptomActors[i]; // cache for updating
-		if (Symptom.Duration.GetTotalSeconds() < 0.0)
+		if (Symptom.Duration.GetTotalSeconds() <= 0.0)
 		{
 			SymptomActors.Remove(Symptom); // remove expired symptom
-			Length = SymptomActors.Num();  // update length
 			UE_LOG(LogTemp, Warning, TEXT("%s with Symptom ID %d expired"), *(Symptom.SymptomActor->GetName()), Symptom.SymptomEffectIndex);
+			Length = SymptomActors.Num();  // update length
 		}
 	}
 }
@@ -89,7 +89,9 @@ void ASymptomsManager::ExpireActiveSymptoms()
 	static FTimespan Decrement = FTimespan(0, 0, 1); // decrement a second each expiration
 	for (int i = 0; i < SymptomActors.Num(); ++i)
 	{
-		SymptomActors[i].Duration -= Decrement;
+		FSymptom* Symptom = &SymptomActors[i];
+		Symptom->Duration -= Decrement;
+		UE_LOG(LogTemp, Warning, TEXT("%f seconds remaining for active symptom in %s"), Symptom->Duration.GetTotalSeconds(), *(Symptom->SymptomActor->GetName()));
 	}
 }
 
