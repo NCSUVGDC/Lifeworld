@@ -4,57 +4,43 @@
 
 #include "GameFramework/Actor.h"
 #include "CoreMinimal.h"
+#include "SymptomUtilitiesManager.generated.h"
 
-#define MAX_SYMPTOMS 1
+//#define MAX_SYMPTOMS 1
+
+// Container defining a Symptom's effect and duration
+USTRUCT()
+struct FSymptomDetail
+{
+	GENERATED_BODY()
+	
+	// index of symptom effect
+	UPROPERTY()
+	int32 SymptomEffectIndex;
+	// duration of each symptom
+	UPROPERTY()
+	FTimespan SymptomDuration;
+
+	// details constructor (with default values for testing purposes)
+	FSymptomDetail(int32 FunctionIndex = 0, FTimespan Duration = FTimespan(0, 0, 0)) : SymptomEffectIndex(FunctionIndex), SymptomDuration(Duration) {}
+};
 
 /**
  * Contains symptom effects and utility properties
  */
-class HARLOWS_WALLPAPER_API SymptomUtilitiesManager
+UCLASS()
+class HARLOWS_WALLPAPER_API USymptomUtilitiesManager : public UObject
 {
+	GENERATED_BODY()
+
 public:
-	SymptomUtilitiesManager();
-	~SymptomUtilitiesManager();
+	USymptomUtilitiesManager();
+	~USymptomUtilitiesManager();
 
-	// function pointer taking a single Actor argument
-	typedef void(SymptomUtilitiesManager::*SingleActorFuncPtr)(AActor*);
-
-	// symptom functions array
-	UPROPERTY()
-	const SingleActorFuncPtr SymptomFunctions[MAX_SYMPTOMS] = { &SymptomUtilitiesManager::Flee };
-	
-	// index of symptom effect
-	UPROPERTY()
-	static TMap<FName, int32> SymptomFunctionIndexes;
-	
-	// duration of each symptom map
-	UPROPERTY()
-	static TMap<FName, FTimespan> SymptomDurations;
-
-	// display symptom effect
-	UFUNCTION()
-	void DisplaySymptom(int32 SymptomIndex, AActor* SymptomActor);
-
-	// get singleton instance
-	UFUNCTION()
-	static SymptomUtilitiesManager* GetInstance();
-	
-	/* Symptom functions */
-
-	// Flee from player
-	UFUNCTION()
-	void Flee(AActor* SymptomActor);
+	// details for each symptom
+	static TMap<FName, FSymptomDetail> SymptomDetails;
 
 private:
-	UPROPERTY()
-	// use to access symptoms utilities
-	static SymptomUtilitiesManager* Singleton;
-
-	/*UFUNCTION()
-	static TMap<FName, SingleActorFuncPtr> InitSymptomFunctions();*/
-	UFUNCTION()
-	static TMap<FName, int32> InitSymptomFunctionIndexes();
-
-	UFUNCTION()
-	static TMap<FName, FTimespan> InitSymptomDurations();
+	// initialize symtom details
+	static TMap<FName, FSymptomDetail> InitSymptomDetails();
 };

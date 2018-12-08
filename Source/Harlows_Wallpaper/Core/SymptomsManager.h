@@ -7,6 +7,8 @@
 #include "SymptomUtilitiesManager.h"
 #include "SymptomsManager.generated.h"
 
+#define MAX_SYMPTOMS 1
+
 USTRUCT()
 struct FSymptom
 {
@@ -22,8 +24,10 @@ struct FSymptom
 	// symptom effect index
 	int32 SymptomEffectIndex;
 
+	// symptom constructor
 	FSymptom(AActor* TaggedActor, FTimespan SymptomDuration, int32 EffectIndex)
 		: SymptomActor(TaggedActor), Duration(SymptomDuration), SymptomEffectIndex(EffectIndex) {}
+	// default symptom constructor (mainly used for testing)
 	FSymptom() : SymptomActor(NULL), Duration(FTimespan(0, 0, 10)), SymptomEffectIndex(0) {}
 
 	FORCEINLINE bool operator==(const FSymptom& rhs)
@@ -38,15 +42,24 @@ class HARLOWS_WALLPAPER_API ASymptomsManager : public AActor
 	GENERATED_BODY()
 
 private:
+	// function pointer taking a single Actor argument
+	typedef void(ASymptomsManager::*SingleActorFunc)(AActor*);
+
+	// symptom functions array
+	const SingleActorFunc SymptomFunctions[MAX_SYMPTOMS] = { &ASymptomsManager::Flee };
+
 	// Array of actors with active Symptoms
 	UPROPERTY()
-		TArray<FSymptom> SymptomActors;
+	TArray<FSymptom> SymptomActors;
 
 	UFUNCTION()
-		void DisplayActiveSymptoms();
+	void ExpireActiveSymptoms();
 
+	/* Symptom functions */
+
+	// Flee from player
 	UFUNCTION()
-		void ExpireActiveSymptoms();
+	void Flee(AActor* SymptomActor);
 
 protected:
 	// Called when the game starts or when spawned
@@ -59,15 +72,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Adds an Actor with an active symptom
-	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
-		void AddActorsWithActiveSymptoms();
-
-	// Removes actors with an expired symptom
-	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
-		void RemoveExpiredSymptoms();
-
 	// Tags an actor with a Symptom
 	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
-		void TagActorWithSymptom(AActor* Actor, FName SymptomTag);
+	void AddSymptomToActor(AActor* Actor, const FName SymptomTag);
 };
