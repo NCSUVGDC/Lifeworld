@@ -78,7 +78,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	// Tags an actor with a Symptom
+	/**
+	 * Tags an actor with a Symptom
+	 * 
+	 * @return true if the symptom was successfully added
+	 */
 	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
-	void AddSymptomToActor(AActor* Actor, const FName SymptomTag);
+	bool AddSymptomToActor(AActor* Actor, const FName SymptomTag);
 };

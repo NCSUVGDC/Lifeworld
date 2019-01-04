@@ -3,7 +3,6 @@
 #include "SymptomsManager.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
-#include "Engine.h"
 
 // Sets default values
 ASymptomsManager::ASymptomsManager()
@@ -17,28 +16,33 @@ ASymptomsManager::ASymptomsManager()
 void ASymptomsManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UE_LOG(LogTemp, Log, TEXT("%d symptoms available"), USymptomUtilitiesManager::SymptomDetails.Num());
 	
 	// Handle actors in world with pre-assigned Symptoms via the Tag system
 	// This is done once here on BeginPlay; any future symptoms should be added via AddSymptomToActor
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), FoundActors);
 
-	// Add actor to symptom array
+	// Add actors to symptom array
 	for (AActor* SymptomActor : FoundActors)
 	{
-		TArray<FName> SymptomTags = SymptomActor->Tags;
-
 		// Check for active symptoms
-		if (SymptomTags.Num() != 0)
+		if (SymptomActor->Tags.Num() != 0)
 		{
-			for (FName Symptom : SymptomTags)
+			// Loop backwards over the list so we can safely remove tags as we iterate
+			for (int SymptomIdx = SymptomActor->Tags.Num() - 1; SymptomIdx >= 0; SymptomIdx--)
 			{
-				AddSymptomToActor(SymptomActor, Symptom);
+				FName& Symptom = SymptomActor->Tags[SymptomIdx];
+
+				bool SuccessfullyAddedSymptom = AddSymptomToActor(SymptomActor, Symptom);
+				if (SuccessfullyAddedSymptom)
+				{
+					// No point in keeping the tag now that the symptom has been applied
+					SymptomActor->Tags.RemoveAt(SymptomIdx);
+				}
 			}
 		}
-
-		// Remove tags
-		SymptomActor->Tags.Empty();
 	}
 }
 
@@ -61,7 +65,7 @@ void ASymptomsManager::Tick(float DeltaTime)
 	UpdateActiveSymptoms(DeltaTime);
 }
 
-void ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
+bool ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 {
 	// Find corresponding duration and effect for Symptom
 	FSymptomDetails *Details = USymptomUtilitiesManager::SymptomDetails.Find(Symptom);
@@ -70,13 +74,14 @@ void ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 	if (Details == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Failed to find symptom details for symptom '%s'! Could not add to actor '%s'!"), 
-			*(Symptom.ToString()), *(Actor->GetName()));
-		return;
+			*Symptom.ToString(), *Actor->GetName());
+		return false;
 	}
 
 	// Add symptom and remove tags
 	SymptomActors.Add(FSymptom(Actor, Details->SymptomDuration, Details->SymptomEffectIndex));
 	UE_LOG(LogTemp, Warning, TEXT("Added %s to active symptom actors"), *(Actor->GetName()));
+	return true;
 }
 
 void ASymptomsManager::UpdateActiveSymptoms(float DeltaTime)
@@ -111,6 +116,7 @@ void ASymptomsManager::Flee(AActor * SymptomActor)
 		FString DebugMsg = FString::Printf(TEXT("Running Flee Symptom on Actor %s"), *SymptomActor->GetName());
 		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
 	}
+	
 	UE_LOG(LogTemp, Warning, TEXT("Running Flee Symptom on Actor %s"), *SymptomActor->GetName());
 	// TODO: actor flees from player's sight
 }

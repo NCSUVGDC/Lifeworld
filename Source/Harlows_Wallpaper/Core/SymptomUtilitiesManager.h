@@ -38,10 +38,10 @@ public:
 	USymptomUtilitiesManager();
 	~USymptomUtilitiesManager();
 
-	// details for each symptom
+	// Details for each symptom; names are in the format 'Symptom.blahblahblah'
 	static TMap<FName, FSymptomDetails> SymptomDetails;
 
 private:
-	// initialize symtom details
+	// Initializes symptom details and assigns them to the static SymptomDetails map
 	static TMap<FName, FSymptomDetails> InitSymptomDetails();
 };
