@@ -14,20 +14,23 @@ struct FSymptom
 {
 	GENERATED_BODY()
 
+	// Actor affected by a symptom
 	UPROPERTY()
-	// actor affected by a symptom
 	AActor* SymptomActor;
+
+	// Duration of the symptom; decremented each tick in UpdateActiveSymptoms
 	UPROPERTY()
-	// duration of the symptom
 	FTimespan Duration;
+
+	// Index of the symptom's "effect" function in SymptomFunctions
 	UPROPERTY()
-	// symptom effect index
 	int32 SymptomEffectIndex;
 
-	// symptom constructor
+	// Symptom constructor
 	FSymptom(AActor* TaggedActor, FTimespan SymptomDuration, int32 EffectIndex)
 		: SymptomActor(TaggedActor), Duration(SymptomDuration), SymptomEffectIndex(EffectIndex) {}
-	// default symptom constructor (mainly used for testing)
+		
+	// Default symptom constructor (mainly used for testing)
 	FSymptom() : SymptomActor(NULL), Duration(FTimespan(0, 0, 10)), SymptomEffectIndex(0) {}
 
 	FORCEINLINE bool operator==(const FSymptom& rhs)
@@ -42,18 +45,21 @@ class HARLOWS_WALLPAPER_API ASymptomsManager : public AActor
 	GENERATED_BODY()
 
 private:
-	// function pointer taking a single Actor argument
+	// Function pointer taking a single Actor argument
 	typedef void(ASymptomsManager::*SingleActorFunc)(AActor*);
 
-	// symptom functions array
+	// What effect/action each symptom causes
+	// Called every tick
 	const SingleActorFunc SymptomFunctions[MAX_SYMPTOMS] = { &ASymptomsManager::Flee };
 
 	// Array of actors with active Symptoms
 	UPROPERTY()
 	TArray<FSymptom> SymptomActors;
 
+	// Decrements each symptom's durations by the given DeltaTime (called in Tick)
+	// Removes any expired symptoms
 	UFUNCTION()
-	void ExpireActiveSymptoms();
+	void UpdateActiveSymptoms(float DeltaTime);
 
 	/* Symptom functions */
 

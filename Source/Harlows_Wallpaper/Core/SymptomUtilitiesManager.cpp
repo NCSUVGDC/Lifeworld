@@ -13,14 +13,14 @@ USymptomUtilitiesManager::~USymptomUtilitiesManager()
 }
 
 // initialize details for each symptom
-TMap<FName, FSymptomDetail> USymptomUtilitiesManager::SymptomDetails = InitSymptomDetails();
+TMap<FName, FSymptomDetails> USymptomUtilitiesManager::SymptomDetails = InitSymptomDetails();
 
-TMap<FName, FSymptomDetail> USymptomUtilitiesManager::InitSymptomDetails()
+TMap<FName, FSymptomDetails> USymptomUtilitiesManager::InitSymptomDetails()
 {
-	TMap<FName, FSymptomDetail> SymptomContainers;
+	TMap<FName, FSymptomDetails> SymptomContainers;
 	
 	// flee
-	SymptomContainers.Add(FName(TEXT("Symptoms.Flee")), FSymptomDetail(FLEE, FTimespan(0, 0, 5)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.Flee")), FSymptomDetails(FLEE, FTimespan(0, 0, 5)));
 	
 	return SymptomContainers;
 	return SymptomContainers;

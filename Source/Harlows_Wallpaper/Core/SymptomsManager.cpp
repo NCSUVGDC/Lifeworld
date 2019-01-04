@@ -3,6 +3,7 @@
 #include "SymptomsManager.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
+#include "Engine.h"
 
 // Sets default values
 ASymptomsManager::ASymptomsManager()
@@ -17,25 +18,27 @@ void ASymptomsManager::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	// Handle actors in world with pre-assigned Symptoms
+	// Handle actors in world with pre-assigned Symptoms via the Tag system
+	// This is done once here on BeginPlay; any future symptoms should be added via AddSymptomToActor
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), FoundActors);
 
 	// Add actor to symptom array
 	for (AActor* SymptomActor : FoundActors)
 	{
-		TArray<FName> Tags = SymptomActor->Tags;
-		// check for active symptoms
-		if (Tags.Num() != 0)
+		TArray<FName> SymptomTags = SymptomActor->Tags;
+
+		// Check for active symptoms
+		if (SymptomTags.Num() != 0)
 		{
-			for (FName Symptom : Tags)
+			for (FName Symptom : SymptomTags)
 			{
 				AddSymptomToActor(SymptomActor, Symptom);
 			}
-
-			// Remove tags
-			SymptomActor->Tags.Empty();
 		}
+
+		// Remove tags
+		SymptomActor->Tags.Empty();
 	}
 }
 
@@ -48,49 +51,58 @@ void ASymptomsManager::Tick(float DeltaTime)
 	for (int32 i = SymptomActors.Num() - 1; i >= 0; --i)
 	{
 		FSymptom *Symptom = &(SymptomActors[i]);
-		(this->* (SymptomFunctions[Symptom->SymptomEffectIndex]))(Symptom->SymptomActor);
 
-		// expire symptoms
-		ExpireActiveSymptoms();
+		// TODO Hey @jegood could you break down what's going on here with some comments? This is too technical for me :P
+		// Are we calling the SymptomFunction for each symptom each frame? 
+		(this->* (SymptomFunctions[Symptom->SymptomEffectIndex]))(Symptom->SymptomActor);
 	}
+
+	// Tick symptom durations
+	UpdateActiveSymptoms(DeltaTime);
 }
 
 void ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 {
 	// Find corresponding duration and effect for Symptom
-	FSymptomDetail *Detail = USymptomUtilitiesManager::SymptomDetails.Find(Symptom);
+	FSymptomDetails *Details = USymptomUtilitiesManager::SymptomDetails.Find(Symptom);
 
-	// add symptom and remove tags
-	SymptomActors.Add(FSymptom(Actor, Detail->SymptomDuration, Detail->SymptomEffectIndex));
-	UE_LOG(LogTemp, Warning, TEXT("Added %s to active symptoms"), *(Actor->GetName()));
+	// Dereferencing null pointers causes a hard crash - best to catch it here and keep an eye on the log
+	if (Details == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to find symptom details for symptom '%s'! Could not add to actor '%s'!"), 
+			*(Symptom.ToString()), *(Actor->GetName()));
+		return;
+	}
+
+	// Add symptom and remove tags
+	SymptomActors.Add(FSymptom(Actor, Details->SymptomDuration, Details->SymptomEffectIndex));
+	UE_LOG(LogTemp, Warning, TEXT("Added %s to active symptom actors"), *(Actor->GetName()));
 }
 
-//void ASymptomsManager::DisplayActiveSymptoms()
-//{
-//}
-
-void ASymptomsManager::ExpireActiveSymptoms()
+void ASymptomsManager::UpdateActiveSymptoms(float DeltaTime)
 {
-	static FTimespan Decrement = FTimespan(0, 0, 1); // decrement a second each cycle
+	// We'll be decrementing by the same amount for each symptom
+	static FTimespan Decrement = FTimespan::FromSeconds(DeltaTime);
+
 	for (int32 i = SymptomActors.Num() - 1; i >= 0; --i)
 	{
-		// decrement duration
+		// Decrement duration
 		FSymptom* Symptom = &SymptomActors[i];
 		Symptom->Duration -= Decrement;
-		UE_LOG(LogTemp, Warning, TEXT("%f seconds remaining for active symptom in %s"), Symptom->Duration.GetTotalSeconds(), *(Symptom->SymptomActor->GetName()));
+		UE_LOG(LogTemp, Log, TEXT("%f seconds remaining for active symptom in %s"), Symptom->Duration.GetTotalSeconds(), *(Symptom->SymptomActor->GetName()));
 
-		// remove if expired
+		// Remove if expired
 		if (Symptom->Duration.GetTotalSeconds() <= 0.0)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("%s with Symptom ID %d expired"), *(Symptom->SymptomActor->GetName()), Symptom->SymptomEffectIndex);
 			FSymptom Copy = *Symptom; // need a copy, otherwise, we create a dangling ptr
 			SymptomActors.Remove(Copy); // remove expired symptom
-			UE_LOG(LogTemp, Warning, TEXT("symptom %d for actor %s successfully removed"), Symptom->SymptomEffectIndex, *(Symptom->SymptomActor->GetName()));
+			UE_LOG(LogTemp, Warning, TEXT("Symptom %d for actor %s successfully removed"), Symptom->SymptomEffectIndex, *(Symptom->SymptomActor->GetName()));
 		}
 	}
 }
 
-/* Symtpom Functions */
+/* Symptom Functions */
 void ASymptomsManager::Flee(AActor * SymptomActor)
 {
 	if (GEngine)

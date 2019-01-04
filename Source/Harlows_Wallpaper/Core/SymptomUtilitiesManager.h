@@ -10,19 +10,20 @@
 
 // Container defining a Symptom's effect and duration
 USTRUCT()
-struct FSymptomDetail
+struct FSymptomDetails
 {
 	GENERATED_BODY()
 	
 	// index of symptom effect
 	UPROPERTY()
 	int32 SymptomEffectIndex;
+
 	// duration of each symptom
 	UPROPERTY()
 	FTimespan SymptomDuration;
 
 	// details constructor (with default values for testing purposes)
-	FSymptomDetail(int32 FunctionIndex = 0, FTimespan Duration = FTimespan(0, 0, 0)) : SymptomEffectIndex(FunctionIndex), SymptomDuration(Duration) {}
+	FSymptomDetails(int32 FunctionIndex = 0, FTimespan Duration = FTimespan(0, 0, 0)) : SymptomEffectIndex(FunctionIndex), SymptomDuration(Duration) {}
 };
 
 /**
@@ -38,9 +39,9 @@ public:
 	~USymptomUtilitiesManager();
 
 	// details for each symptom
-	static TMap<FName, FSymptomDetail> SymptomDetails;
+	static TMap<FName, FSymptomDetails> SymptomDetails;
 
 private:
 	// initialize symtom details
-	static TMap<FName, FSymptomDetail> InitSymptomDetails();
+	static TMap<FName, FSymptomDetails> InitSymptomDetails();
 };
