@@ -38,7 +38,7 @@ public:
 	USymptomUtilitiesManager();
 	~USymptomUtilitiesManager();
 
-	// Details for each symptom; names are in the format 'Symptom.blahblahblah'
+	// Details for each symptom; names are in the format 'Symptoms.<SymptomName>'
 	static TMap<FName, FSymptomDetails> SymptomDetails;
 
 private:

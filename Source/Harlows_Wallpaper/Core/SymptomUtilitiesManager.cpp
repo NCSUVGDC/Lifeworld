@@ -20,7 +20,7 @@ TMap<FName, FSymptomDetails> USymptomUtilitiesManager::InitSymptomDetails()
 	TMap<FName, FSymptomDetails> SymptomContainers;
 	
 	// flee
-	SymptomContainers.Add(FName(TEXT("Symptom.Flee")), FSymptomDetails(FLEE, FTimespan(0, 0, 5)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.Flee")), FSymptomDetails(FLEE, FTimespan(0, 0, 5)));
 	
 	return SymptomContainers;
 }
