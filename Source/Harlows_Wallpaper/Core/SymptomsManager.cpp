@@ -56,8 +56,9 @@ void ASymptomsManager::Tick(float DeltaTime)
 	{
 		FSymptom *Symptom = &(SymptomActors[i]);
 
-		// TODO Hey @jegood could you break down what's going on here with some comments? This is too technical for me :P
-		// Are we calling the SymptomFunction for each symptom each frame? 
+		// The inner most parentheses with `SymptomFunctions[Symptom->SymptomEffectIndex]` gets the
+		// symptom function pointer; the `this->*` dereferences that function pointer and calls it;
+		// The finally parentheses with `Symptom->SymptomActor` are the function args
 		(this->* (SymptomFunctions[Symptom->SymptomEffectIndex]))(Symptom->SymptomActor);
 	}
 
@@ -78,7 +79,6 @@ bool ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 		return false;
 	}
 
-<<<<<<< HEAD
 	// Add symptom and remove tags
 	SymptomActors.Add(FSymptom(Actor, Details->SymptomDuration, Details->SymptomEffectIndex));
 	UE_LOG(LogTemp, Warning, TEXT("Added %s to active symptom actors"), *(Actor->GetName()));
@@ -86,9 +86,6 @@ bool ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 }
 
 void ASymptomsManager::UpdateActiveSymptoms(float DeltaTime)
-=======
-void ASymptomsManager::ExpireActiveSymptoms()
->>>>>>> InitialSymptomManager
 {
 	// We'll be decrementing by the same amount for each symptom
 	static FTimespan Decrement = FTimespan::FromSeconds(DeltaTime);
