@@ -23,5 +23,4 @@ TMap<FName, FSymptomDetail> USymptomUtilitiesManager::InitSymptomDetails()
 	SymptomContainers.Add(FName(TEXT("Symptoms.Flee")), FSymptomDetail(FLEE, FTimespan(0, 0, 5)));
 	
 	return SymptomContainers;
-	return SymptomContainers;
 }

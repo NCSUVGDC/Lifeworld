@@ -65,10 +65,6 @@ void ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 	UE_LOG(LogTemp, Warning, TEXT("Added %s to active symptoms"), *(Actor->GetName()));
 }
 
-//void ASymptomsManager::DisplayActiveSymptoms()
-//{
-//}
-
 void ASymptomsManager::ExpireActiveSymptoms()
 {
 	static FTimespan Decrement = FTimespan(0, 0, 1); // decrement a second each cycle
