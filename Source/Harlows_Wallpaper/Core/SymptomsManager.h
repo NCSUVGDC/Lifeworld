@@ -67,6 +67,12 @@ private:
 	UFUNCTION()
 	void Flee(AActor* SymptomActor);
 
+	// See the note for the `DebugSymptomTickFrequency` property
+	// We keep `DebugSymptomCanTickThisFrame` as a class-scoped variable so other methods (namely the
+	// symptom functions themselves) only log with the specified frequency as well.
+	float DebugSymptomTickCounter = 0.0f;
+	bool DebugSymptomCanTickThisFrame = false;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -78,6 +84,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// Changes how frequently this actor ticks (and thus how often symptoms are run)
+	// If <= 0 we'll ignore this value and tick every frame
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "SymptomManager")
+		float TickInterval = 0.0f;
+
 	/**
 	 * Tags an actor with a Symptom
 	 * 
@@ -85,4 +96,9 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
 	bool AddSymptomToActor(AActor* Actor, const FName SymptomTag);
+
+	// Don't log symptom durations every tick or we'll spam the logs
+	// Instead increment a counter each tick and log if it says it's been long enough since the last tick
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug")
+		float DebugSymptomTickFrequency = 1.0f;
 };

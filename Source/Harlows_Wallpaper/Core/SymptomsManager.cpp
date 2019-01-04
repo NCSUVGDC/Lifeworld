@@ -9,13 +9,16 @@ ASymptomsManager::ASymptomsManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
 // Called when the game starts or when spawned
 void ASymptomsManager::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Set a custom tick rate
+	if (TickInterval > 0)
+		SetActorTickInterval(TickInterval);
 
 	UE_LOG(LogTemp, Log, TEXT("%d symptoms available"), USymptomUtilitiesManager::SymptomDetails.Num());
 	
@@ -51,6 +54,9 @@ void ASymptomsManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Tick symptom durations
+	UpdateActiveSymptoms(DeltaTime);
+
 	// run symptom effects
 	for (int32 i = SymptomActors.Num() - 1; i >= 0; --i)
 	{
@@ -61,9 +67,6 @@ void ASymptomsManager::Tick(float DeltaTime)
 		// The finally parentheses with `Symptom->SymptomActor` are the function args
 		(this->* (SymptomFunctions[Symptom->SymptomEffectIndex]))(Symptom->SymptomActor);
 	}
-
-	// Tick symptom durations
-	UpdateActiveSymptoms(DeltaTime);
 }
 
 bool ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
@@ -87,23 +90,36 @@ bool ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 
 void ASymptomsManager::UpdateActiveSymptoms(float DeltaTime)
 {
-	// We'll be decrementing by the same amount for each symptom
-	static FTimespan Decrement = FTimespan::FromSeconds(DeltaTime);
+	// Check if it's safe to log; set CanTickThisFrame to false in case it was true last frame
+	DebugSymptomCanTickThisFrame = false;
+	DebugSymptomTickCounter += DeltaTime;
+	if (DebugSymptomTickCounter >= DebugSymptomTickFrequency)
+	{
+		DebugSymptomCanTickThisFrame = true;
+		DebugSymptomTickCounter -= DebugSymptomTickFrequency;
+	}
 
-	for (int32 i = SymptomActors.Num() - 1; i >= 0; --i)
+	// We'll be decrementing by the same amount for each symptom
+	FTimespan Decrement = FTimespan::FromSeconds(DeltaTime);
+
+	// Log the decrement time if there are any symptomsto decrement
+	if (SymptomActors.Num() > 0)
+		UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Log, TEXT("Decrementing all symptoms by %s"), *Decrement.ToString());
+
+	for (int32 SymptomIdx = SymptomActors.Num() - 1; SymptomIdx >= 0; SymptomIdx--)
 	{
 		// Decrement duration
-		FSymptom* Symptom = &SymptomActors[i];
+		FSymptom* Symptom = &SymptomActors[SymptomIdx];
 		Symptom->Duration -= Decrement;
-		UE_LOG(LogTemp, Log, TEXT("%f seconds remaining for active symptom in %s"), Symptom->Duration.GetTotalSeconds(), *(Symptom->SymptomActor->GetName()));
+		UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Log, TEXT("%f seconds remaining for active symptom in %s"), 
+			Symptom->Duration.GetTotalSeconds(), *(Symptom->SymptomActor->GetName()));
 
 		// Remove if expired
 		if (Symptom->Duration.GetTotalSeconds() <= 0.0)
 		{
+			// Log about expirations regardless of the tick frequency; that's pertinent info.
 			UE_LOG(LogTemp, Warning, TEXT("%s with Symptom ID %d expired"), *(Symptom->SymptomActor->GetName()), Symptom->SymptomEffectIndex);
-			FSymptom Copy = *Symptom; // need a copy, otherwise, we create a dangling ptr
-			SymptomActors.Remove(Copy); // remove expired symptom
-			UE_LOG(LogTemp, Warning, TEXT("Symptom %d for actor %s successfully removed"), Symptom->SymptomEffectIndex, *(Symptom->SymptomActor->GetName()));
+			SymptomActors.RemoveAt(SymptomIdx); // remove expired symptom
 		}
 	}
 }
@@ -111,14 +127,14 @@ void ASymptomsManager::UpdateActiveSymptoms(float DeltaTime)
 /* Symptom Functions */
 void ASymptomsManager::Flee(AActor * SymptomActor)
 {
-	if (GEngine)
+	if (DebugSymptomCanTickThisFrame && GEngine)
 	{
 		// just print that we're executing successfully, for now
 		FString DebugMsg = FString::Printf(TEXT("Running Flee Symptom on Actor %s"), *SymptomActor->GetName());
 		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("Running Flee Symptom on Actor %s"), *SymptomActor->GetName());
+	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running Flee Symptom on Actor %s"), *SymptomActor->GetName());
 	// TODO: actor flees from player's sight
 }
 
