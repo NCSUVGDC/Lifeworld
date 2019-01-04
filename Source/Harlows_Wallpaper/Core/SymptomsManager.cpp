@@ -78,6 +78,7 @@ bool ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 		return false;
 	}
 
+<<<<<<< HEAD
 	// Add symptom and remove tags
 	SymptomActors.Add(FSymptom(Actor, Details->SymptomDuration, Details->SymptomEffectIndex));
 	UE_LOG(LogTemp, Warning, TEXT("Added %s to active symptom actors"), *(Actor->GetName()));
@@ -85,6 +86,9 @@ bool ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 }
 
 void ASymptomsManager::UpdateActiveSymptoms(float DeltaTime)
+=======
+void ASymptomsManager::ExpireActiveSymptoms()
+>>>>>>> InitialSymptomManager
 {
 	// We'll be decrementing by the same amount for each symptom
 	static FTimespan Decrement = FTimespan::FromSeconds(DeltaTime);
