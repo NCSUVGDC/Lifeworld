@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "HarlowGameState.h"
+#include "../Player/HarlowPawn.h"
 #include "HarlowGameMode.generated.h"
 
 UCLASS()

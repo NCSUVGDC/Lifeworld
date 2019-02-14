@@ -2,8 +2,3 @@
 
 #include "InteractionFunctionLibrary.h"
 
-
-void UInteractionFunctionLibrary::TriggerNarrativeEvent(FNarrativeEvent& Event)
-{
-	Event.TestDelegate.Execute();
-}
