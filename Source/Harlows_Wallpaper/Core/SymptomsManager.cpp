@@ -125,16 +125,32 @@ void ASymptomsManager::UpdateActiveSymptoms(float DeltaTime)
 }
 
 /* Symptom Functions */
-void ASymptomsManager::Flee(AActor * SymptomActor)
+void ASymptomsManager::ImposeSizePerception(AActor * SymptomActor)
 {
 	if (DebugSymptomCanTickThisFrame && GEngine)
 	{
 		// just print that we're executing successfully, for now
-		FString DebugMsg = FString::Printf(TEXT("Running Flee Symptom on Actor %s"), *SymptomActor->GetName());
+		FString DebugMsg = FString::Printf(TEXT("Running SizePerception Symptom on Actor %s"), *SymptomActor->GetName());
 		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
 	}
 	
-	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running Flee Symptom on Actor %s"), *SymptomActor->GetName());
-	// TODO: actor flees from player's sight
+	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running SizePerception Symptom on Actor %s"), *SymptomActor->GetName());
+	// TODO: actor's size changes
 }
+
+void ASymptomsManager::ImposeVoices(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeWarpingWalls(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposePhantom(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeBackIsTurned(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeLensFlaring(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeBreatheIn(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor) {}
 

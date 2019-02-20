@@ -7,7 +7,7 @@
 #include "SymptomUtilitiesManager.h"
 #include "SymptomsManager.generated.h"
 
-#define MAX_SYMPTOMS 1
+#define MAX_SYMPTOMS 9
 
 USTRUCT()
 struct FSymptom
@@ -50,7 +50,10 @@ private:
 
 	// What effect/action each symptom causes
 	// Called every tick
-	const SingleActorFunc SymptomFunctions[MAX_SYMPTOMS] = { &ASymptomsManager::Flee };
+	const SingleActorFunc SymptomFunctions[MAX_SYMPTOMS] = { &ASymptomsManager::ImposeSizePerception,
+		&ASymptomsManager::ImposeVoices, &ASymptomsManager::ImposeDoubleTake, &ASymptomsManager::ImposeWarpingWalls,
+		&ASymptomsManager::ImposePhantom, &ASymptomsManager::ImposeBackIsTurned, &ASymptomsManager::ImposeLensFlaring,
+		&ASymptomsManager::ImposeBreatheIn, &ASymptomsManager::ImposeFallingFloor };
 
 	// Array of actors with active Symptoms
 	UPROPERTY()
@@ -63,9 +66,67 @@ private:
 
 	/* Symptom functions */
 
-	// Flee from player
+	/**
+	 * augment actor's size. gradually return it
+	 * to normal as player approaches.
+	 */
 	UFUNCTION()
-	void Flee(AActor* SymptomActor);
+	void ImposeSizePerception(AActor* SymptomActor);
+
+	/**
+	 * proc voices with varying volume levels.
+	 */
+	UFUNCTION()
+	void ImposeVoices(AActor* SymptomActor);
+
+	/**
+	 * forces actor to dart away from player's
+	 * line-of-sight. actor returns to normal
+	 * when player looks at it within a certain
+	 * radius.
+	 */
+	UFUNCTION()
+	void ImposeDoubleTake(AActor* SymptomActor);
+
+	/**
+	 * warp walls based on intensity level
+	 */
+	UFUNCTION()
+	void ImposeWarpingWalls(AActor* SymptomActor);
+
+	/**
+	 * create phantom to haunt player at the edge
+	 * of their vision.
+	 */
+	UFUNCTION()
+	void ImposePhantom(AActor* SymptomActor);
+
+	/**
+	 * change the actor based on some set of parameters
+	 */
+	UFUNCTION()
+	void ImposeBackIsTurned(AActor* SymptomActor);
+
+	/**
+	 * duplicate light source in a scattered line
+	 * (see trello card reference images)
+	 */
+	UFUNCTION()
+	void ImposeLensFlaring(AActor* SymptomActor);
+
+	/**
+	 * (see trello card for details)
+	 */
+	UFUNCTION()
+	void ImposeBreatheIn(AActor* SymptomActor);
+
+	/**
+	 * over time, floor falls away piece-wise around
+	 * the player. restores all fallen objects once
+	 * this completes.
+	 */
+	UFUNCTION()
+	void ImposeFallingFloor(AActor* SymptomActor);
 
 	// See the note for the `DebugSymptomTickFrequency` property
 	// We keep `DebugSymptomCanTickThisFrame` as a class-scoped variable so other methods (namely the
