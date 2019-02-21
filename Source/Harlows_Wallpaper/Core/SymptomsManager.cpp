@@ -22,6 +22,16 @@ void ASymptomsManager::BeginPlay()
 
 	UE_LOG(LogTemp, Log, TEXT("%d symptoms available"), USymptomUtilitiesManager::SymptomDetails.Num());
 	
+	//Find the phantom that exists in the world and store a reference to it
+	TArray<AActor*> GhostsNStuff;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APhantom::StaticClass(), GhostsNStuff);
+
+	//If we have the one phantom found, store the reference at index 0 of TArray
+	if (GhostsNStuff.Num() == 1)
+	{
+		phantom = (APhantom*)GhostsNStuff[0];
+	}
+
 	// Handle actors in world with pre-assigned Symptoms via the Tag system
 	// This is done once here on BeginPlay; any future symptoms should be added via AddSymptomToActor
 	TArray<AActor*> FoundActors;
@@ -138,3 +148,25 @@ void ASymptomsManager::Flee(AActor * SymptomActor)
 	// TODO: actor flees from player's sight
 }
 
+void ASymptomsManager::DoubleTakeOrPhantom(AActor * SymptomActor)
+{
+	if (UGameplayStatics::GetRealTimeSeconds(GetWorld()) < 150)
+		DoubleTake(SymptomActor);
+	else
+		Phantom(SymptomActor);
+
+}
+
+void ASymptomsManager::DoubleTake(AActor * SymptomActor)
+{
+}
+
+void ASymptomsManager::Phantom(AActor * SymptomActor)
+{
+	//move the phantom to be right behind and to the side of the player
+	FVector ghostLoc = SymptomActor->GetActorLocation();
+	ghostLoc += FVector(-200, 400, 0);
+	phantom->SetActorLocation(ghostLoc);
+	phantom->SetActorHiddenInGame(false);
+	phantom->SetActorTickEnabled(true);
+}

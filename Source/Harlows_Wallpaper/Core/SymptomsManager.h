@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Phantom.h"
 #include "SymptomUtilitiesManager.h"
 #include "SymptomsManager.generated.h"
 
-#define MAX_SYMPTOMS 1
+#define MAX_SYMPTOMS 2
 
 USTRUCT()
 struct FSymptom
@@ -50,7 +51,7 @@ private:
 
 	// What effect/action each symptom causes
 	// Called every tick
-	const SingleActorFunc SymptomFunctions[MAX_SYMPTOMS] = { &ASymptomsManager::Flee };
+	const SingleActorFunc SymptomFunctions[MAX_SYMPTOMS] = { &ASymptomsManager::Flee, &ASymptomsManager::DoubleTakeOrPhantom };
 
 	// Array of actors with active Symptoms
 	UPROPERTY()
@@ -61,11 +62,26 @@ private:
 	UFUNCTION()
 	void UpdateActiveSymptoms(float DeltaTime);
 
+	UPROPERTY()
+		APhantom* phantom;
+
 	/* Symptom functions */
 
 	// Flee from player
 	UFUNCTION()
 	void Flee(AActor* SymptomActor);
+
+	//Decide whether to run Double Take or Phantom
+	UFUNCTION()
+		void DoubleTakeOrPhantom(AActor* SymptomActor);
+
+	// Object moves in player's peripheral
+	UFUNCTION()
+		void DoubleTake(AActor* SymptomActor);
+
+	// Ghost appears in player's peripheral
+	UFUNCTION()
+		void Phantom(AActor* SymptomActor);
 
 	// See the note for the `DebugSymptomTickFrequency` property
 	// We keep `DebugSymptomCanTickThisFrame` as a class-scoped variable so other methods (namely the
