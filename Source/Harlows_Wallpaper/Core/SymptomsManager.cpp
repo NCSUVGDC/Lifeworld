@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SymptomsManager.h"
+#include "PossessedObject.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
 
@@ -48,12 +49,21 @@ void ASymptomsManager::BeginPlay()
 			{
 				FName& Symptom = SymptomActor->Tags[SymptomIdx];
 
-				bool SuccessfullyAddedSymptom = AddSymptomToActor(SymptomActor, Symptom);
-				if (SuccessfullyAddedSymptom)
+				//check if the tag says it can be moved by DoubleTakeSymptom
+				if (Symptom == FName("Possess"))
 				{
-					// No point in keeping the tag now that the symptom has been applied
-					SymptomActor->Tags.RemoveAt(SymptomIdx);
+					DoubleTakeActors.Add(SymptomActor);
 				}
+				else
+				{
+					bool SuccessfullyAddedSymptom = AddSymptomToActor(SymptomActor, Symptom);
+					if (SuccessfullyAddedSymptom)
+					{
+						// No point in keeping the tag now that the symptom has been applied
+						SymptomActor->Tags.RemoveAt(SymptomIdx);
+					}
+				}
+
 			}
 		}
 	}
@@ -159,6 +169,14 @@ void ASymptomsManager::DoubleTakeOrPhantom(AActor * SymptomActor)
 
 void ASymptomsManager::DoubleTake(AActor * SymptomActor)
 {
+
+	//Spawn a new PossessObject and tie player and object to it
+	APossessedObject* pj = (APossessedObject*)GetWorld()->SpawnActor(APossessedObject::StaticClass());
+
+	pj->setObject(DoubleTakeActors[0]);
+	pj->setPlayer(SymptomActor);
+
+
 }
 
 void ASymptomsManager::Phantom(AActor * SymptomActor)

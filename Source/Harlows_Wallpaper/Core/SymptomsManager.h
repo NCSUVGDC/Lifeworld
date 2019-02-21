@@ -57,6 +57,10 @@ private:
 	UPROPERTY()
 	TArray<FSymptom> SymptomActors;
 
+	// Array of actors that can be possess by double take function
+	UPROPERTY()
+		TArray<AActor*> DoubleTakeActors;
+
 	// Decrements each symptom's durations by the given DeltaTime (called in Tick)
 	// Removes any expired symptoms
 	UFUNCTION()
