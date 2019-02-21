@@ -7,7 +7,7 @@
 // Sets default values
 ASymptomsManager::ASymptomsManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
@@ -21,7 +21,7 @@ void ASymptomsManager::BeginPlay()
 		SetActorTickInterval(TickInterval);
 
 	UE_LOG(LogTemp, Log, TEXT("%d symptoms available"), USymptomUtilitiesManager::SymptomDetails.Num());
-	
+
 	// Handle actors in world with pre-assigned Symptoms via the Tag system
 	// This is done once here on BeginPlay; any future symptoms should be added via AddSymptomToActor
 	TArray<AActor*> FoundActors;
@@ -77,7 +77,7 @@ bool ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 	// Dereferencing null pointers causes a hard crash - best to catch it here and keep an eye on the log
 	if (Details == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to find symptom details for symptom '%s'! Could not add to actor '%s'!"), 
+		UE_LOG(LogTemp, Error, TEXT("Failed to find symptom details for symptom '%s'! Could not add to actor '%s'!"),
 			*Symptom.ToString(), *Actor->GetName());
 		return false;
 	}
@@ -111,7 +111,7 @@ void ASymptomsManager::UpdateActiveSymptoms(float DeltaTime)
 		// Decrement duration
 		FSymptom* Symptom = &SymptomActors[SymptomIdx];
 		Symptom->Duration -= Decrement;
-		UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Log, TEXT("%f seconds remaining for active symptom in %s"), 
+		UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Log, TEXT("%f seconds remaining for active symptom in %s"),
 			Symptom->Duration.GetTotalSeconds(), *(Symptom->SymptomActor->GetName()));
 
 		// Remove if expired
@@ -125,16 +125,31 @@ void ASymptomsManager::UpdateActiveSymptoms(float DeltaTime)
 }
 
 /* Symptom Functions */
-void ASymptomsManager::Flee(AActor * SymptomActor)
+void ASymptomsManager::ImposeSizePerception(AActor * SymptomActor)
 {
 	if (DebugSymptomCanTickThisFrame && GEngine)
 	{
 		// just print that we're executing successfully, for now
-		FString DebugMsg = FString::Printf(TEXT("Running Flee Symptom on Actor %s"), *SymptomActor->GetName());
+		FString DebugMsg = FString::Printf(TEXT("Running SizePerception Symptom on Actor %s"), *SymptomActor->GetName());
 		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
 	}
-	
-	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running Flee Symptom on Actor %s"), *SymptomActor->GetName());
-	// TODO: actor flees from player's sight
+
+	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running SizePerception Symptom on Actor %s"), *SymptomActor->GetName());
+	// TODO: actor's size changes
 }
 
+void ASymptomsManager::ImposeVoices(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeWarpingWalls(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposePhantom(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeBackIsTurned(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeLensFlaring(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeBreatheIn(AActor * SymptomActor) {}
+
+void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor) {}
