@@ -3,6 +3,7 @@
 #include "SymptomUtilitiesManager.h"
 
 #define FLEE 0
+#define FALLING_FLOOR 9
 
 USymptomUtilitiesManager::USymptomUtilitiesManager()
 {
@@ -22,5 +23,8 @@ TMap<FName, FSymptomDetails> USymptomUtilitiesManager::InitSymptomDetails()
 	// flee
 	SymptomContainers.Add(FName(TEXT("Symptoms.Flee")), FSymptomDetails(FLEE, FTimespan(0, 0, 5)));
 	
+	//Falling Floor
+	SymptomContainers.Add(FName(TEXT("Symptoms.Falling_Floor")), FSymptomDetails(FALLING_FLOOR, FTimespan(0, 0, 5)));
+
 	return SymptomContainers;
 }

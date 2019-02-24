@@ -138,3 +138,11 @@ void ASymptomsManager::Flee(AActor * SymptomActor)
 	// TODO: actor flees from player's sight
 }
 
+void ASymptomsManager::FallingFloor(AActor * SymptomActor)
+{
+	ADestructibleFloor* current = (ADestructibleFloor*)SymptomActor;
+	if (!current->destroyed) {
+		current->FallToRuin();
+	}
+}
+
