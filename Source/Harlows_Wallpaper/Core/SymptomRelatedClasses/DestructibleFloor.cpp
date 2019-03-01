@@ -15,12 +15,14 @@ ADestructibleFloor::ADestructibleFloor()
 	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("Destructible Component"));
 	DestructibleComponent->SetupAttachment(RootComponent);
 
+	/**
 	static ConstructorHelpers::FObjectFinder<UDestructibleMesh> MeshContainer(TEXT("DestructibleMesh'/Game/HarlowsWallpaper/Environment/floor/ph_chess_board_DM.ph_chess_board_DM'"));
 	if (MeshContainer.Succeeded())
 	{
 		UDestructibleMesh* mesh = MeshContainer.Object;
 		DestructibleComponent->SetDestructibleMesh(mesh);
 	}
+	*/
 
 	bCanBeDamaged = false;
 	destroyed = false;
@@ -38,9 +40,10 @@ void ADestructibleFloor::FallToRuin()
 	GetWorld()->LineTraceMultiByChannel(hits, startTrace, endTrace, ECollisionChannel::ECC_PhysicsBody, TraceParams);
 
 	for (FHitResult latest : hits) {
-		AActor a = latest.GetActor;
+		AActor* a = latest.GetActor();
 		fallers.Add(a);
-		previousTrans.Add(a.GetActorTransform);
+		previousTrans.Add(a->GetActorTransform());
+		size++;
 	}
 
 	//Remember initial position before being destroyed
@@ -61,8 +64,8 @@ void ADestructibleFloor::Restore()
 	DestructibleComponent->SetDestructibleMesh(DestructibleComponent->GetDestructibleMesh());
 	DestructibleComponent->SetWorldLocation(position);
 	destroyed = false;
-	for (int i = 0; i < fallers.Num; i++) {
-		fallers[i].SetActorTransform(previousTrans[i]);
+	for (int i = 0; i < size; i++) {
+		fallers[i]->SetActorTransform(previousTrans[i]);
 	}
 	AActor::SetActorTickEnabled(false);
 }

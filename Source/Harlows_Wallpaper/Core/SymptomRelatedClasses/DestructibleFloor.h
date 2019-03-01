@@ -26,7 +26,7 @@ public:
 	UFUNCTION()
 		void Restore();
 
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 		UDestructibleComponent* DestructibleComponent;
 
 	UPROPERTY()
@@ -36,7 +36,10 @@ public:
 		bool destroyed;
 
 	UPROPERTY()
-		TArray<AActor> fallers;
+		TArray<AActor*> fallers;
+
+	UPROPERTY()
+		int size;
 
 	UPROPERTY()
 		TArray<FTransform> previousTrans;
