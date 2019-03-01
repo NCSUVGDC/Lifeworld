@@ -7,7 +7,7 @@
 #include "PossessedObject.generated.h"
 
 UCLASS()
-class FIRSTPERSON_API APossessedObject : public AActor
+class HARLOWS_WALLPAPER_API APossessedObject : public AActor
 {
 	GENERATED_BODY()
 

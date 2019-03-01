@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+
+#include "PossessedObject.h"
 #include "Runtime/Engine/Classes/Components/PrimitiveComponent.h"
 #include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
-#include "PossessedObject.h"
-
 
 // Sets default values
 APossessedObject::APossessedObject()

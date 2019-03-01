@@ -38,11 +38,19 @@ void ASymptomsManager::BeginPlay()
 			{
 				FName& Symptom = SymptomActor->Tags[SymptomIdx];
 
-				bool SuccessfullyAddedSymptom = AddSymptomToActor(SymptomActor, Symptom);
-				if (SuccessfullyAddedSymptom)
+				//check if the tag says it can be moved by DoubleTakeSymptom
+				if (Symptom == FName("Possess"))
 				{
-					// No point in keeping the tag now that the symptom has been applied
-					SymptomActor->Tags.RemoveAt(SymptomIdx);
+					DoubleTakeActors.Add( SymptomActor );
+				}
+				else
+				{
+					bool SuccessfullyAddedSymptom = AddSymptomToActor(SymptomActor, Symptom);
+					if (SuccessfullyAddedSymptom)
+					{
+						// No point in keeping the tag now that the symptom has been applied
+						SymptomActor->Tags.RemoveAt(SymptomIdx);
+					}
 				}
 			}
 		}
@@ -140,11 +148,71 @@ void ASymptomsManager::ImposeSizePerception(AActor * SymptomActor)
 
 void ASymptomsManager::ImposeVoices(AActor * SymptomActor) {}
 
-void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor) {}
+void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor)
+{
+
+	if (DebugSymptomCanTickThisFrame && GEngine)
+	{
+		// just print that we're executing successfully, for now
+		FString DebugMsg = FString::Printf(TEXT("Running DoubleTake Symptom on Actor %s"), *SymptomActor->GetName());
+		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
+	}
+
+	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running DoubleTake Symptom on Actor %s"), *SymptomActor->GetName());
+
+	// Add actors to symptom array
+	for (AActor* Object : DoubleTakeActors)
+	{
+		float DotProd = GetDotProductTo(Object);
+		if (DotProd >= 0.4 && DotProd < 0.6)
+		{
+			//Spawn a new PossessObject and tie player and object to it
+			APossessedObject* pj = (APossessedObject*)GetWorld()->SpawnActor(APossessedObject::StaticClass());
+
+			pj->setObject(Object);
+			pj->setPlayer(SymptomActor);
+			pj->DoASpoopyThing();
+			break;
+		}
+	}
+
+}
 
 void ASymptomsManager::ImposeWarpingWalls(AActor * SymptomActor) {}
 
-void ASymptomsManager::ImposePhantom(AActor * SymptomActor) {}
+void ASymptomsManager::ImposePhantom(AActor * SymptomActor)
+{
+	if (DebugSymptomCanTickThisFrame && GEngine)
+	{
+		// just print that we're executing successfully, for now
+		FString DebugMsg = FString::Printf(TEXT("Running Phantom Symptom on Actor %s"), *SymptomActor->GetName());
+		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
+	}
+
+	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running Phantom Symptom on Actor %s"), *SymptomActor->GetName());
+
+
+	//Get reference to phantom
+	//Find the phantom that exists in the world and store a reference to it
+	TArray<AActor*> GhostsNStuff;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APhantom::StaticClass(), GhostsNStuff);
+	//	FString NumStr = FString::FromInt(GhostsNStuff.Num());
+	//	if (GEngine)
+	//		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, *NumStr);
+
+	//If we have the one phantom found, store the reference at index 0 of TArray
+	if (GhostsNStuff.Num() == 1)
+	{
+		phantom = (APhantom*)GhostsNStuff[0];
+		phantom->SetActorHiddenInGame(false);
+		phantom->SetPlayer( SymptomActor );
+		FVector ghostLoc = SymptomActor->GetActorLocation();
+		ghostLoc += FVector(-50, 300, 0);
+		phantom->SetActorLocation(ghostLoc);
+		phantom->SetActorTickEnabled(true);
+	}
+
+}
 
 void ASymptomsManager::ImposeBackIsTurned(AActor * SymptomActor) {}
 
