@@ -163,7 +163,7 @@ void ASymptomsManager::DoubleTakeOrPhantom(AActor * SymptomActor)
 	if (UGameplayStatics::GetRealTimeSeconds(GetWorld()) < 150)
 		DoubleTake(SymptomActor);
 	else
-		Phantom(SymptomActor);
+		PhantomSym(SymptomActor);
 
 }
 
@@ -179,7 +179,7 @@ void ASymptomsManager::DoubleTake(AActor * SymptomActor)
 
 }
 
-void ASymptomsManager::Phantom(AActor * SymptomActor)
+void ASymptomsManager::PhantomSym(AActor * SymptomActor)
 {
 	//move the phantom to be right behind and to the side of the player
 	FVector ghostLoc = SymptomActor->GetActorLocation();

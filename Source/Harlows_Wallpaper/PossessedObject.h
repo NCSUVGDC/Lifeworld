@@ -7,11 +7,11 @@
 #include "PossessedObject.generated.h"
 
 UCLASS()
-class HARLOWS_WALLPAPER_API APossessedObject : public AActor
+class FIRSTPERSON_API APossessedObject : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	APossessedObject();
 
@@ -19,13 +19,15 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	void setObject(AActor * obj);
 
 	void setPlayer(AActor * ply);
+
+	void DoASpoopyThing();
 
 private:
 
@@ -38,6 +40,7 @@ private:
 	float timeSpotted;
 
 	FVector startLoc = FVector::ZeroVector;
-	
-	
+	FRotator startRot = FRotator::ZeroRotator;
+
+
 };

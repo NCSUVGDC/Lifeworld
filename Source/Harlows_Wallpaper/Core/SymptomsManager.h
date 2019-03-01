@@ -85,7 +85,7 @@ private:
 
 	// Ghost appears in player's peripheral
 	UFUNCTION()
-		void Phantom(AActor* SymptomActor);
+		void PhantomSym(AActor* SymptomActor);
 
 	// See the note for the `DebugSymptomTickFrequency` property
 	// We keep `DebugSymptomCanTickThisFrame` as a class-scoped variable so other methods (namely the
