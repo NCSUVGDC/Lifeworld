@@ -8,6 +8,7 @@
 #include "ConstructorHelpers.h"
 #include "EngineUtils.h"
 #include "Engine/Classes/GameFramework/Actor.h"
+#include "Engine.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "DestructibleFloor.generated.h"
 
@@ -20,7 +21,7 @@ public:
 	// Sets default values for this actor's properties
 	ADestructibleFloor();
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 		void FallToRuin();
 
 	UFUNCTION()
@@ -35,13 +36,13 @@ public:
 	UPROPERTY()
 		bool destroyed;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 		TArray<AActor*> fallers;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 		int size;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadWrite)
 		TArray<FTransform> previousTrans;
 
 	UPROPERTY()

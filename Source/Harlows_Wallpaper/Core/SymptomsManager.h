@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "SymptomUtilitiesManager.h"
-#include "SymptomRelatedClasses\DestructibleFloor.h"
+#include "SymptomRelatedClasses/DestructibleFloor.h"
 #include "SymptomsManager.generated.h"
 
 #define MAX_SYMPTOMS 2
@@ -51,7 +51,7 @@ private:
 
 	// What effect/action each symptom causes
 	// Called every tick
-	const SingleActorFunc SymptomFunctions[MAX_SYMPTOMS] = { &ASymptomsManager::Flee };
+	const SingleActorFunc SymptomFunctions[MAX_SYMPTOMS] = { &ASymptomsManager::Flee,  &ASymptomsManager::FallingFloor };
 
 	// Array of actors with active Symptoms
 	UPROPERTY()

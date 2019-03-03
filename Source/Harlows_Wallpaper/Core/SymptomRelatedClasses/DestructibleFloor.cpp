@@ -7,13 +7,15 @@
 ADestructibleFloor::ADestructibleFloor()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	AActor::SetActorTickEnabled(false);
+
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Component"));
 
 	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("Destructible Component"));
 	DestructibleComponent->SetupAttachment(RootComponent);
+
 
 	/**
 	static ConstructorHelpers::FObjectFinder<UDestructibleMesh> MeshContainer(TEXT("DestructibleMesh'/Game/HarlowsWallpaper/Environment/floor/ph_chess_board_DM.ph_chess_board_DM'"));
@@ -37,22 +39,13 @@ void ADestructibleFloor::FallToRuin()
 	FVector startTrace = GetActorLocation();
 	FVector endTrace = startTrace + FVector(0, 0, 300);
 
-	GetWorld()->LineTraceMultiByChannel(hits, startTrace, endTrace, ECollisionChannel::ECC_PhysicsBody, TraceParams);
-
-	for (FHitResult latest : hits) {
-		AActor* a = latest.GetActor();
-		fallers.Add(a);
-		previousTrans.Add(a->GetActorTransform());
-		size++;
-	}
-
 	//Remember initial position before being destroyed
 	position = DestructibleComponent->GetComponentLocation();
 	bCanBeDamaged = true;
 
 	DestructibleComponent->ApplyDamage(1000, position, FVector(0, 0, -10), 100);
 	destroyed = true;
-	AActor::SetActorTickEnabled(true);
+
 }
 
 void ADestructibleFloor::Restore()
@@ -65,9 +58,10 @@ void ADestructibleFloor::Restore()
 	DestructibleComponent->SetWorldLocation(position);
 	destroyed = false;
 	for (int i = 0; i < size; i++) {
+		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Yellow, FString("Location: " + fallers[i]->GetActorLocation().ToString() + " | " + "Rotation: " + fallers[i]->GetActorRotation().ToString() + " | " + "Scale: " + fallers[i]->GetActorScale().ToString()));
+		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Green, FString("Location: " + previousTrans[i].GetLocation().ToString() + " | " + "Rotation: " + previousTrans[i].GetRotation().ToString() + " | " + "Scale: " + previousTrans[i].GetScale3D().ToString()));
 		fallers[i]->SetActorTransform(previousTrans[i]);
 	}
-	AActor::SetActorTickEnabled(false);
 }
 
 // Called when the game starts or when spawned
@@ -90,8 +84,8 @@ void ADestructibleFloor::Tick(float DeltaTime)
 			APawn* player = GetWorld()->GetFirstPlayerController()->GetPawn();
 			FVector forward = player->GetActorForwardVector();
 			FVector loc = player->GetActorLocation();
-			float f = FVector::DotProduct(forward, loc - position);
-			if (f > 0) {
+			float f = FVector::DotProduct(GetActorLocation() - loc, forward);
+			if (f < 0) {
 				Restore();
 			}
 		}
