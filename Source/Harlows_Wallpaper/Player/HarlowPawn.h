@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Phantom.h"
+#include "PossessedObject.h"
 #include "GameFramework/Pawn.h"
 #include "HarlowPawn.generated.h"
 
@@ -19,6 +21,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	FTimerHandle SpawnTimer;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -27,5 +31,28 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	
-	
+	/**
+	* create phantom to haunt player at the edge
+	* of their vision.
+	*/
+	UFUNCTION()
+		void ImposePhantom();
+
+	/**
+	* forces actor to dart away from player's
+	* line-of-sight. actor returns to normal
+	* when player looks at it within a certain
+	* radius.
+	*/
+	UFUNCTION()
+		void ImposeDoubleTake();
+
+private:
+
+	// Array of actors that can be possess by double take function
+	UPROPERTY()
+		TArray<AActor*> DoubleTakeActors;
+
+	UPROPERTY()
+		APhantom* phantom;
 };
