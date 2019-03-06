@@ -15,9 +15,7 @@ ATimeSystem::ATimeSystem()
 void ATimeSystem::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// setup singleton instance
-
+	
 	// toggle debug function based on in-game settings
 	GConfig->GetBool(TEXT("/Script/Harlows_Wallpaper.CustomGameSettings"), TEXT("bEnableDebugMessages"), EnableDebug, GGameIni);
 }
