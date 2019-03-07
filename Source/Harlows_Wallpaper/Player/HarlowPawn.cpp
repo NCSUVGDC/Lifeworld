@@ -130,9 +130,9 @@ void AHarlowPawn::ImposePhantom()
 	{
 		phantom = (APhantom*)GhostsNStuff[0];
 		phantom->SetActorHiddenInGame(false);
-		phantom->SetPlayer(this);
-		FVector ghostLoc = this->GetActorLocation();
-		ghostLoc += FVector(-50, 300, 0);
+		phantom->SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+		FVector ghostLoc = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation();
+		ghostLoc += FVector(-50, 150, 0);
 		phantom->SetActorLocation(ghostLoc);
 		phantom->SetActorTickEnabled(true);
 	}
