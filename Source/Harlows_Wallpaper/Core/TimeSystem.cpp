@@ -15,11 +15,9 @@ ATimeSystem::ATimeSystem()
 void ATimeSystem::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	// toggle debug function based on in-game settings
 	GConfig->GetBool(TEXT("/Script/Harlows_Wallpaper.CustomGameSettings"), TEXT("bEnableDebugMessages"), EnableDebug, GGameIni);
-	
-	// Create a Timespan based on rate
-	Accumulator = FTimespan::FTimespan(0, FGenericPlatformMath::FloorToInt(10 * Rate), 0);
 }
 
 // Called every frame
@@ -27,7 +25,8 @@ void ATimeSystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	// Update current time
-	CurrentTime += Accumulator;
+	FTimespan TimePassed = FTimespan::FromSeconds(DeltaTime * Rate);
+	CurrentTime += TimePassed;
 	
 	// Log debug output if enabled
 	if (EnableDebug)
@@ -45,4 +44,14 @@ void ATimeSystem::Tick(float DeltaTime)
 int32 ATimeSystem::GetElapsedDays()
 {
 	return CurrentTime.GetTotalDays();
+}
+
+int32 ATimeSystem::CurrentMinute()
+{
+	return CurrentTime.GetMinutes();
+}
+
+int32 ATimeSystem::CurrentHour()
+{
+	return CurrentTime.GetHours();
 }
