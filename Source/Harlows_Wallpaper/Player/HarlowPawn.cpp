@@ -84,36 +84,59 @@ void AHarlowPawn::ImposeDoubleTake()
 	// Add actors to symptom array
 	for (AActor* Object : DoubleTakeActors)
 	{
-		float DotProd = GetDotProductTo(Object);
+		float DotProd = (GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager)->GetDotProductTo(Object);
 		if (DotProd >= 0.4 && DotProd < 0.6)
 		{
 			//Spawn a new PossessObject and tie player and object to it
 			APossessedObject* pj = (APossessedObject*)GetWorld()->SpawnActor(APossessedObject::StaticClass());
 
 			pj->setObject(Object);
-			pj->setPlayer( this );
+			pj->setPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
 			pj->DoASpoopyThing();
 			foundActor = true;
 			break;
 		}
-		if (!foundActor)
-		{
-			if (GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Failed to run Double-Take"));
-			//Try again in 3 seconds
-			GetWorldTimerManager().SetTimer(SpawnTimer, this, &AHarlowPawn::ImposeDoubleTake, 3.0f, false);
-		}
-		else
-		{
-			if (GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Running Double-Take!"));
-		}
+	}
+
+	if (!foundActor)
+	{
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Failed to run Double-Take. Let's try again!"));
+		//Try again in 3 seconds
+		GetWorldTimerManager().SetTimer(SpawnTimer, this, &AHarlowPawn::ImposeDoubleTake, 3.0f, false);
+	}
+	else
+	{
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Running Double-Take!"));
 	}
 
 }
 
 void AHarlowPawn::ImposePhantom()
 {
+	/*
+	
+	//contains information about the raycast hit
+	FHitResult Hit;
+
+	//The length of the ray in units.
+	float RayLength = 200;
+
+	//The origin of the raycast
+	FVector StartLocation = FirstPersonCameraComponent->GetComponentLocation();
+
+	//The end location of the raycast
+	FVector EndLocation = StartLocation + ( FirstPersonCameraComponent->GetForwardVector() + RayLength );
+
+	FCollisionQueryParams CollisionParameters = new FCollisionQueryParams();
+
+	ActorLineTraceSingle(Hit, StartLocation, EndLocation, ECollisionChannel::ECC_WorldDynamic, CollisionParameters);
+
+	DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Cyan, true, -1, 0, 1.f);
+	
+	*/
+
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Running Phantom"));
 
