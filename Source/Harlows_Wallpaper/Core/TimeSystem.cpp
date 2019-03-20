@@ -19,7 +19,7 @@ void ATimeSystem::BeginPlay()
 	GConfig->GetBool(TEXT("/Script/Harlows_Wallpaper.CustomGameSettings"), TEXT("bEnableDebugMessages"), EnableDebug, GGameIni);
 	
 	// Create a Timespan based on rate
-	Accumulator = FTimespan::FTimespan(0, FGenericPlatformMath::FloorToInt(10 * Rate), 0);
+	Accumulator = FTimespan(0, FGenericPlatformMath::FloorToInt(10 * Rate), 0);
 }
 
 // Called every frame
