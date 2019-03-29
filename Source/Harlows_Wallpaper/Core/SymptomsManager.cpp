@@ -3,6 +3,7 @@
 #include "SymptomsManager.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
+#include "Harlows_Wallpaper/Core/SizePerceptionActor.h"
 
 // Sets default values
 ASymptomsManager::ASymptomsManager()
@@ -20,7 +21,7 @@ void ASymptomsManager::BeginPlay()
 	if (TickInterval > 0)
 		SetActorTickInterval(TickInterval);
 
-	UE_LOG(LogTemp, Log, TEXT("%d symptoms available"), USymptomUtilitiesManager::SymptomDetails.Num());
+	UE_LOG(LogTemp, Warning, TEXT("%d symptoms available"), USymptomUtilitiesManager::SymptomDetails.Num());
 
 	// Handle actors in world with pre-assigned Symptoms via the Tag system
 	// This is done once here on BeginPlay; any future symptoms should be added via AddSymptomToActor
@@ -62,7 +63,7 @@ void ASymptomsManager::Tick(float DeltaTime)
 	{
 		FSymptom *Symptom = &(SymptomActors[i]);
 
-		// The inner most parentheses with `SymptomFunctions[Symptom->SymptomEffectIndex]` gets the
+		// The inner most parentheses with `SymptomFunctions[Symptom->SymptomEffectIndex]` gets the 
 		// symptom function pointer; the `this->*` dereferences that function pointer and calls it;
 		// The finally parentheses with `Symptom->SymptomActor` are the function args
 		(this->* (SymptomFunctions[Symptom->SymptomEffectIndex]))(Symptom->SymptomActor);
@@ -135,7 +136,13 @@ void ASymptomsManager::ImposeSizePerception(AActor * SymptomActor)
 	}
 
 	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running SizePerception Symptom on Actor %s"), *SymptomActor->GetName());
-	// TODO: actor's size changes
+	
+	// Scale it up to a base scale of 2
+	float scaleSize = 2.0;
+	float distance = 1.0; // TODO: Actually calculate distance
+	FVector NewScale = FVector((distance / 260.0) * scaleSize, (distance / 260.0) * scaleSize, (distance / 260.0) * scaleSize);
+	SymptomActor->SetActorScale3D(NewScale);
+
 }
 
 void ASymptomsManager::ImposeVoices(AActor * SymptomActor) {}
