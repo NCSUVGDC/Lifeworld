@@ -137,6 +137,37 @@ void AHarlowPawn::ImposePhantom()
 	
 	*/
 
+
+	FHitResult OutHit;
+	FVector Start = GetWorld()->PlayerCameraManager->GetCameraLocation();
+
+	FVector ForwardVector = GetWorld()->PlayerCameraManager->GetRightVector();
+	FVector End = ((ForwardVector * 1000.f) + Start);
+	FCollisionQueryParams CollisionParams;
+
+	DrawDebugLine(GetWorld(), Start, End, FColor::Red, true);
+
+	bool isHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, CollisionParams);
+
+	if (isHit)
+	{
+		if (OutHit.bBlockingHit)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
+
+			AActor *actorHit = OutHit.GetActor();
+
+			FString NumStr = FString::SanitizeFloat(actorHit->GetHorizontalDistanceTo(this));
+
+			if (GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, *NumStr);
+
+			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, FString::Printf(TEXT("Object Location: %s"), *OutHit.GetActor()->GetDistanceTo( this ) ));
+		}
+	}
+
+
+
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Running Phantom"));
 
