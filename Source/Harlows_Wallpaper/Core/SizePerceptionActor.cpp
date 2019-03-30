@@ -88,7 +88,7 @@ AActor* ASizePerceptionActor::Select()
 	
 	// Sets LifeWorldPlayer to HarlowPawn
 	LifeWorldPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-
+	UE_LOG(LogTemp, Warning, TEXT("You set LifeWorldPlayer"));
 	// Checks that LifeWorldPlayer is the correct pawn [CAN BE DELETED]
 	if (LifeWorldPlayer->Tags[0] == FName("Player")) {
 		UE_LOG(LogTemp, Warning, TEXT("Got the player pawn correctly"));
@@ -127,7 +127,7 @@ AActor* ASizePerceptionActor::Select()
 
 	// Cycles through the array of dot products to determine which one fits criteria
 	for (int i = 0; i < DotProducts.Num(); i++) {
-		if (DotProducts[i] < 0.0) {
+		if (DotProducts[i] > 0.0) {
 			LoopActor = SizePerceptionActors[i];
 			FVector LoopActorLocation = LoopActor->GetActorLocation();
 			FVector PlayerLocation = LifeWorldPlayer->GetActorLocation();
@@ -145,6 +145,6 @@ AActor* ASizePerceptionActor::Select()
 		}
 	}
 
-	UE_LOG(LogTemp, Error, TEXT("FINAL SELECTEDACTOR IS: %s"), *SelectedActor->GetName());
+	//UE_LOG(LogTemp, Error, TEXT("FINAL SELECTEDACTOR IS: %s"), *SelectedActor->GetName());
 	return SelectedActor;
 }
