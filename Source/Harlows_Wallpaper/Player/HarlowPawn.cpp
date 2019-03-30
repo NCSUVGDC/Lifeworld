@@ -3,6 +3,7 @@
 #include "HarlowPawn.h"
 #include "DrawDebugHelpers.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
 
 
@@ -56,6 +57,7 @@ void AHarlowPawn::BeginPlay()
 	//If we have the one phantom found, store the reference at index 0 of TArray
 	if (GhostsNStuff.Num() == 1)
 	{
+
 		//Call the function in 5 seconds
 		if (GEngine)
 		{
@@ -71,6 +73,10 @@ void AHarlowPawn::BeginPlay()
 	{
 		//Call the function in 5 seconds
 		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("Gonna impose double take"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("Gonna impose double take"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("Gonna impose double take"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("Gonna impose double take"));
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("Gonna impose double take"));
 		GetWorldTimerManager().SetTimer(SpawnTimer, this, &AHarlowPawn::ImposeDoubleTake, 5.0f, false);
 	}
@@ -90,7 +96,7 @@ void AHarlowPawn::Tick(float DeltaTime)
 
 	FVector RightVector = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetTransformComponent()->GetRightVector();
 //	RightVector.Z = 10;
-	FVector End = ((RightVector * 110.f) + Start);
+	FVector End = ((RightVector * 90.f) + Start);
 	End.Z = 10;
 	FCollisionQueryParams CollisionParams;
 
@@ -129,7 +135,10 @@ void AHarlowPawn::ImposeDoubleTake()
 	if (!foundActor)
 	{
 		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Failed to run Double-Take. Let's try again!"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Orange, TEXT("Failed to run Double-Take. Let's try again!"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Orange, TEXT("Failed to run Double-Take. Let's try again!"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Orange, TEXT("Failed to run Double-Take. Let's try again!"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Orange, TEXT("Failed to run Double-Take. Let's try again!"));
 		//Try again in 3 seconds
 		GetWorldTimerManager().SetTimer(SpawnTimer, this, &AHarlowPawn::ImposeDoubleTake, 3.0f, false);
 	}
@@ -157,7 +166,7 @@ void AHarlowPawn::ImposePhantom()
 	//	GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetRightVector();
 	FVector RightVector = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetTransformComponent()->GetRightVector();
 	//	RightVector.Z = 10;
-	FVector End = ((RightVector * 110.f) + Start);
+	FVector End = ((RightVector * 100.f) + Start);
 	End.Z = 10;
 	FCollisionQueryParams CollisionParams;
 
@@ -176,11 +185,15 @@ void AHarlowPawn::ImposePhantom()
 			phantom = (APhantom*)GhostsNStuff[0];
 			phantom->SetActorHiddenInGame(false);
 			phantom->SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
-			FVector ghostLoc = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation();
+			FVector ghostLoc = ((RightVector * 100.f) + Start);
 			ghostLoc.Z = 0;
-			ghostLoc += FVector( -30, 70, 0);
-			phantom->SetActorLocation(End);
+			phantom->SetActorLocation(ghostLoc);
 			phantom->SetActorTickEnabled(true);
+			FRotator facePlayer = UKismetMathLibrary::FindLookAtRotation(phantom->GetActorLocation(), GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation());
+			facePlayer.Roll = 0;
+			facePlayer.Pitch = 0;
+			facePlayer.Yaw -= 90;
+			phantom->SetActorRotation(facePlayer);
 		}
 	}
 	else

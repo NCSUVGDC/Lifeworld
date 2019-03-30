@@ -28,14 +28,17 @@ void APossessedObject::Tick(float DeltaTime)
 	float num = player->GetDotProductTo(object);
 	FString TheFloatStr = FString::SanitizeFloat(num);
 	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, *TheFloatStr);
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, *TheFloatStr);
 
 	if (player->GetDotProductTo(object) >= .75)
 	{
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Return to Normal"));
-		object->SetActorLocation(startLoc);
-		object->SetActorRotation(startRot);
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Return to Normal"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Return to Normal"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Return to Normal"));
+		//object->SetActorLocation(startLoc);
+		//object->SetActorRotation(startRot);
 		Destroy();
 	}
 	else
