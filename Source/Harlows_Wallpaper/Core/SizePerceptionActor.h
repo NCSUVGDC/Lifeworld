@@ -22,6 +22,9 @@ public:
 	// Locates the actor used in SizePerception
 	AActor* Select();
 
+	// Brings a resized actor back to normal
+	void ScaleOriginal();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -46,6 +49,10 @@ private:
 	// Player camera
 	UPROPERTY()
 		USceneComponent* LifeWorldCamera;
+
+	//Distance of SelectedActor
+	UPROPERTY()
+		float SADistance;
 	
 	// Proceed with SizePerception activation
 	UPROPERTY()

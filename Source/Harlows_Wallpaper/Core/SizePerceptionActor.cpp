@@ -5,6 +5,7 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Engine/Engine.h"
 #include "Camera/CameraComponent.h"
+#include <random>
 
 
 // Sets default values
@@ -59,19 +60,24 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	ScaleOriginal();
+
 	// Gets the number of seconds since game started as an int
 	float realtimeSeconds = UGameplayStatics::GetRealTimeSeconds(GetWorld());
 	int32 realtimeSecondsInt = (int32)realtimeSeconds;
 	
 	// Checks if game time is during one of the trigger times for SizePerception
 	switch (realtimeSecondsInt){
-	case 5:
+	case 10:
 		if (proceed) {
 			UE_LOG(LogTemp, Warning, TEXT("ACTIVATED ONLY ONCE"));
-			Select();
+			AActor* SPActor = Select();
 
-			//INSERT CODE HERE FOR DUMMY TRIGGER
-
+			float scaleSize = 5;
+			float distance = SADistance;
+			FVector NewScale = FVector((distance / 260.0) * scaleSize, (distance / 260.0) * scaleSize, (distance / 260.0) * scaleSize);
+			SPActor->SetActorScale3D(NewScale);
+			this->Tags.Add(FName("5"));
 			proceed = false;	// Makes it so Select() cannot be ran until no longer a trigger time
 		}
 		break;
@@ -88,8 +94,8 @@ AActor* ASizePerceptionActor::Select()
 	
 	// Sets LifeWorldPlayer to HarlowPawn
 	LifeWorldPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-	UE_LOG(LogTemp, Warning, TEXT("You set LifeWorldPlayer"));
-	// Checks that LifeWorldPlayer is the correct pawn [CAN BE DELETED]
+
+	// Checks that LifeWorldPlayer is the correct pawn
 	if (LifeWorldPlayer->Tags[0] == FName("Player")) {
 		UE_LOG(LogTemp, Warning, TEXT("Got the player pawn correctly"));
 	}
@@ -123,28 +129,71 @@ AActor* ASizePerceptionActor::Select()
 
 	// Initializes the largestDistance and DefaultActor variables
 	float largestDistance = 0;
-	AActor* DefaultActor;
+	AActor* DefaultActor = NULL;
 
-	// Cycles through the array of dot products to determine which one fits criteria
+	// Cycles through the array of dot products to determine which ones are both behind the player and far away enough to be significant
 	for (int i = 0; i < DotProducts.Num(); i++) {
-		if (DotProducts[i] > 0.0) {
+		if (DotProducts[i] < 0.0) {
 			LoopActor = SizePerceptionActors[i];
 			FVector LoopActorLocation = LoopActor->GetActorLocation();
 			FVector PlayerLocation = LifeWorldPlayer->GetActorLocation();
 			FVector DistanceVector = LoopActorLocation - PlayerLocation;
 			UE_LOG(LogTemp, Log, TEXT("Distance to %s : %f"), *LoopActor->GetName(), DistanceVector.Size());
+			// Sets the default actor if none are far away enough
 			if (DistanceVector.Size() > largestDistance) {
 				largestDistance = DistanceVector.Size();
 				DefaultActor = LoopActor;
 				UE_LOG(LogTemp, Warning, TEXT("DefaultActor became: %s"), *DefaultActor->GetName());
 			}
-			if (DistanceVector.Size() >= 130) {
+			// If distance is significant enough, add the actor to FinalSelectionRandomizer array
+			if (DistanceVector.Size() >= 100) {
 				FinalSelectionRandomizer.Add(LoopActor);
 				UE_LOG(LogTemp, Warning, TEXT("Added to FinalSelectionRandomizer: %s"), *LoopActor->GetName());
 			}
 		}
 	}
 
-	//UE_LOG(LogTemp, Error, TEXT("FINAL SELECTEDACTOR IS: %s"), *SelectedActor->GetName());
+	// Randomly picks an actor from FinalSelectionRandomizer if applicable, picks DefaultActor if not
+	if (FinalSelectionRandomizer.Num() > 0) {
+		std::random_device rd;     // only used once to initialise (seed) engine
+		std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+		std::uniform_int_distribution<int> uni(0, FinalSelectionRandomizer.Num() - 1); // guaranteed unbiased
+		auto random_integer = uni(rng);
+		AActor* ChosenThing = FinalSelectionRandomizer[random_integer];
+		UE_LOG(LogTemp, Warning, TEXT("Chosen thing is: %s"), *ChosenThing->GetName());
+		SelectedActor = ChosenThing;
+		FVector SelectedActorLocation = SelectedActor->GetActorLocation();
+		FVector PlayerLocation = LifeWorldPlayer->GetActorLocation();
+		FVector SADistanceVect = SelectedActorLocation - PlayerLocation;
+		SADistance = SADistanceVect.Size();
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Going with the DefaultActor because nothing is far enough"));
+		SelectedActor = DefaultActor;
+		FVector SelectedActorLocation = SelectedActor->GetActorLocation();
+		FVector PlayerLocation = LifeWorldPlayer->GetActorLocation();
+		FVector SADistanceVect = SelectedActorLocation - PlayerLocation;
+		SADistance = SADistanceVect.Size();
+	}
+	
+
+	if (SelectedActor != NULL) {
+		UE_LOG(LogTemp, Warning, TEXT("FINAL SELECTEDACTOR IS: %s"), *SelectedActor->GetName());
+	}
 	return SelectedActor;
+}
+
+// Locates the actor used in SizePerception
+void ASizePerceptionActor::ScaleOriginal() {
+	for (int i = 0; i < SizePerceptionActors.Num(); i++) {
+		AActor* LoopActor = SizePerceptionActors[i];
+		FVector LAScale = LoopActor->GetActorScale();
+		if (LAScale != FVector(1, 1, 1)) {
+			FVector LoopActorLocation = LoopActor->GetActorLocation();
+			FVector PlayerLocation = LifeWorldPlayer->GetActorLocation();
+			FVector DistanceVect = LoopActorLocation - PlayerLocation;
+			float distance = DistanceVect.Size();
+			LoopActor->SetActorScale3D(NewScale);
+		}
+	}
 }
