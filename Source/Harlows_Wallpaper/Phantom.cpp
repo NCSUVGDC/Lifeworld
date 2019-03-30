@@ -45,10 +45,11 @@ void APhantom::Tick(float DeltaTime)
 		if (player->GetDotProductTo(this) > 0.75 || UGameplayStatics::GetRealTimeSeconds(GetWorld()) - timeSpotted > 3.0f)
 		{
 			isSeen = false;
-			SetActorHiddenInGame(true);
+			//SetActorHiddenInGame(true);
 			SetActorTickEnabled(false);
 			if (GEngine)
 				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, TEXT("Bye Bye!"));
+
 		}
 	}
 

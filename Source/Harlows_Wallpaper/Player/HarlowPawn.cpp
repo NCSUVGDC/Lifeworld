@@ -19,6 +19,9 @@ void AHarlowPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Beginning play"));
+
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), FoundActors);
 
@@ -54,11 +57,21 @@ void AHarlowPawn::BeginPlay()
 	if (GhostsNStuff.Num() == 1)
 	{
 		//Call the function in 5 seconds
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Purple, TEXT("Gonna impose phantom"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Purple, TEXT("Gonna impose phantom"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Purple, TEXT("Gonna impose phantom"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Purple, TEXT("Gonna impose phantom"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Purple, TEXT("Gonna impose phantom"));
+		}
 		GetWorldTimerManager().SetTimer(SpawnTimer, this, &AHarlowPawn::ImposePhantom, 5.0f, false);
 	}
 	else
 	{
 		//Call the function in 5 seconds
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, TEXT("Gonna impose double take"));
 		GetWorldTimerManager().SetTimer(SpawnTimer, this, &AHarlowPawn::ImposeDoubleTake, 5.0f, false);
 	}
 	
@@ -68,6 +81,20 @@ void AHarlowPawn::BeginPlay()
 void AHarlowPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	FHitResult OutHit;
+	FVector Start = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation();
+	Start.Z = 10;
+
+	//	GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetRightVector();
+
+	FVector RightVector = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetTransformComponent()->GetRightVector();
+//	RightVector.Z = 10;
+	FVector End = ((RightVector * 110.f) + Start);
+	End.Z = 10;
+	FCollisionQueryParams CollisionParams;
+
+	DrawDebugLine(GetWorld(), Start, End, FColor::Red, true);
 
 }
 
@@ -116,24 +143,64 @@ void AHarlowPawn::ImposeDoubleTake()
 
 void AHarlowPawn::ImposePhantom()
 {
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, TEXT("Running Phantom!"));
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, TEXT("Running Phantom!"));
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, TEXT("Running Phantom!"));
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, TEXT("Running Phantom!"));
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, TEXT("Running Phantom!"));
+	}
 	FHitResult OutHit;
 	FVector Start = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation();
-
-//	GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetRightVector();
-
-	FVector RightVector = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetRightVector();
-	FVector End = ((RightVector * 1000.f) + Start);
+	Start.Z = 10;
+	//	GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetRightVector();
+	FVector RightVector = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetTransformComponent()->GetRightVector();
+	//	RightVector.Z = 10;
+	FVector End = ((RightVector * 110.f) + Start);
+	End.Z = 10;
 	FCollisionQueryParams CollisionParams;
-
-	DrawDebugLine(GetWorld(), Start, End, FColor::Red, true);
 
 	bool isHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, CollisionParams);
 
+	if (!isHit)
+	{
+		//Get reference to phantom
+		//Find the phantom that exists in the world and store a reference to it
+		TArray<AActor*> GhostsNStuff;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APhantom::StaticClass(), GhostsNStuff);
+
+		//If we have the one phantom found, store the reference at index 0 of TArray
+		if (GhostsNStuff.Num() == 1)
+		{
+			phantom = (APhantom*)GhostsNStuff[0];
+			phantom->SetActorHiddenInGame(false);
+			phantom->SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+			FVector ghostLoc = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation();
+			ghostLoc.Z = 0;
+			ghostLoc += FVector( -30, 70, 0);
+			phantom->SetActorLocation(End);
+			phantom->SetActorTickEnabled(true);
+		}
+	}
+	else
+	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("TargetToClose. Let's try again!"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("TargetToClose. Let's try again!"));
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("TargetToClose. Let's try again!"));
+		}
+		//Try again in 3 seconds
+		GetWorldTimerManager().SetTimer(SpawnTimer, this, &AHarlowPawn::ImposePhantom, 3.0f, false);
+	}
+
+/*
 	if (isHit)
 	{
 		if (OutHit.bBlockingHit)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Turquoise, FString::Printf(TEXT("You are hitting something")));//, *OutHit.GetActor()->GetName()));
 
 			AActor *actorHit = OutHit.GetActor();
 
@@ -164,7 +231,7 @@ void AHarlowPawn::ImposePhantom()
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Failed to run Phantom. Let's try again!"));
 		//Try again in 3 seconds
 		GetWorldTimerManager().SetTimer(SpawnTimer, this, &AHarlowPawn::ImposePhantom, 3.0f, false);
-	}
+	}*/
 
 
 
