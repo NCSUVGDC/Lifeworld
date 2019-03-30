@@ -18,9 +18,19 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	// Get total elapsed days
+	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
+	int32 GetElapsedDays();
+
+	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
+	// Get current minute
+	int32 CurrentMinute();
+	
+	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
+	// Get current hour
+	int32 CurrentHour();
+
 private:
-	// time span for progressing in-game time
-	FTimespan Accumulator;
 	// amount of in-game time passed
 	FTimespan CurrentTime;
 	// flag for enabling debug output
@@ -31,15 +41,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
-	// Get total elapsed days
-	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
-	int32 GetElapsedDays();
-
-	// private function to format time for display
-	/*UFUNCTION(BlueprintCallable)
-	FString FormatTime();*/
-
 	// rate at which time progresses
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
-	float Rate;
+	float Rate = 1.0f;
 };
