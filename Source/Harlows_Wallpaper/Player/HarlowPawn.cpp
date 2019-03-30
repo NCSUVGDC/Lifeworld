@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HarlowPawn.h"
+#include "DrawDebugHelpers.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
 
@@ -115,34 +116,13 @@ void AHarlowPawn::ImposeDoubleTake()
 
 void AHarlowPawn::ImposePhantom()
 {
-	/*
-	
-	//contains information about the raycast hit
-	FHitResult Hit;
-
-	//The length of the ray in units.
-	float RayLength = 200;
-
-	//The origin of the raycast
-	FVector StartLocation = FirstPersonCameraComponent->GetComponentLocation();
-
-	//The end location of the raycast
-	FVector EndLocation = StartLocation + ( FirstPersonCameraComponent->GetForwardVector() + RayLength );
-
-	FCollisionQueryParams CollisionParameters = new FCollisionQueryParams();
-
-	ActorLineTraceSingle(Hit, StartLocation, EndLocation, ECollisionChannel::ECC_WorldDynamic, CollisionParameters);
-
-	DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Cyan, true, -1, 0, 1.f);
-	
-	*/
-
-
 	FHitResult OutHit;
-	FVector Start = GetWorld()->PlayerCameraManager->GetCameraLocation();
+	FVector Start = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation();
 
-	FVector ForwardVector = GetWorld()->PlayerCameraManager->GetRightVector();
-	FVector End = ((ForwardVector * 1000.f) + Start);
+//	GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetRightVector();
+
+	FVector RightVector = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetRightVector();
+	FVector End = ((RightVector * 1000.f) + Start);
 	FCollisionQueryParams CollisionParams;
 
 	DrawDebugLine(GetWorld(), Start, End, FColor::Red, true);
@@ -153,23 +133,44 @@ void AHarlowPawn::ImposePhantom()
 	{
 		if (OutHit.bBlockingHit)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
 
 			AActor *actorHit = OutHit.GetActor();
 
-			FString NumStr = FString::SanitizeFloat(actorHit->GetHorizontalDistanceTo(this));
+			FVector actorHitRightVector = OutHit.ImpactPoint;
 
-			if (GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, *NumStr);
+			//Get reference to phantom
+			//Find the phantom that exists in the world and store a reference to it
+			TArray<AActor*> GhostsNStuff;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), APhantom::StaticClass(), GhostsNStuff);
+			//	FString NumStr = FString::FromInt(GhostsNStuff.Num());
+			//	if (GEngine)
+			//		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, *NumStr);
 
-			//GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, FString::Printf(TEXT("Object Location: %s"), *OutHit.GetActor()->GetDistanceTo( this ) ));
+			//If we have the one phantom found, store the reference at index 0 of TArray
+			if (GhostsNStuff.Num() == 1)
+			{
+				phantom = (APhantom*)GhostsNStuff[0];
+				phantom->SetActorHiddenInGame(false);
+				phantom->SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+				phantom->SetActorLocation(actorHitRightVector);
+				phantom->SetActorTickEnabled(true);
+			}
 		}
+	}
+	else
+	{
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Failed to run Phantom. Let's try again!"));
+		//Try again in 3 seconds
+		GetWorldTimerManager().SetTimer(SpawnTimer, this, &AHarlowPawn::ImposePhantom, 3.0f, false);
 	}
 
 
 
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Running Phantom"));
+
+	/*		if (GEngine)
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Running Phantom"));
 
 	//Get reference to phantom
 	//Find the phantom that exists in the world and store a reference to it
@@ -182,14 +183,15 @@ void AHarlowPawn::ImposePhantom()
 	//If we have the one phantom found, store the reference at index 0 of TArray
 	if (GhostsNStuff.Num() == 1)
 	{
-		phantom = (APhantom*)GhostsNStuff[0];
-		phantom->SetActorHiddenInGame(false);
-		phantom->SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
-		FVector ghostLoc = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation();
-		ghostLoc += FVector(-50, 150, 0);
-		phantom->SetActorLocation(ghostLoc);
-		phantom->SetActorTickEnabled(true);
-	}
+	phantom = (APhantom*)GhostsNStuff[0];
+	phantom->SetActorHiddenInGame(false);
+	phantom->SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+	FVector ghostLoc = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation();
+	ghostLoc += FVector(-50, 150, 0);
+	phantom->SetActorLocation(ghostLoc);
+	phantom->SetActorTickEnabled(true);
+	}*/
+
 
 }
 
