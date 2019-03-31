@@ -30,20 +30,17 @@ ADestructibleFloor::ADestructibleFloor()
 
 void ADestructibleFloor::StartSymptom(float StartRestoreTime, float ForceRestoreTime)
 {
-	FTimerHandle TimerHandle;
-	FTimerHandle TimerHandle1;
-	FTimerHandle TimerHandle2;
 
 	float Delay = FMath::RandRange(4.f, 10.f);
 
-	//Set timer for start of recovery checks
+	//Set timer for instigating falling floor
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ADestructibleFloor::FallToRuin, Delay);
 
 	//Set timer for start of recovery checks
-	GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, StartRestoreTime + Delay);
+	GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, StartRestoreTime);
 
 	//Set timer for forced recovery
-	GetWorldTimerManager().SetTimer(TimerHandle2, this, &ADestructibleFloor::ForceRestore, ForceRestoreTime + Delay);
+	GetWorldTimerManager().SetTimer(TimerHandle2, this, &ADestructibleFloor::ForceRestore, ForceRestoreTime);
 
 	
 }
@@ -85,7 +82,6 @@ void ADestructibleFloor::FallToRuin()
 void ADestructibleFloor::StartChecking()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("%s should start checking\n"), *this->GetName());
-	FTimerHandle TimerHandle3;
 	float f = 1 / 60.0;
 
 	// Execute check for recovery at set intervals
@@ -132,7 +128,7 @@ void ADestructibleFloor::Restore()
 				//Reset actor to stored Position if it hasn't already been
 				if (F->GetActorLocation().Z < -10) {
 					F->SetActorTransform(Current.Value);
-					//UE_LOG(LogTemp, Warning, TEXT("Reset %s\n"), *Current.Key);
+					UE_LOG(LogTemp, Warning, TEXT("%s Reset %s\n"), *this->GetName(), *Current.Key);
 				}
 				break;
 			}
@@ -167,6 +163,12 @@ void ADestructibleFloor::Check()
 	FVector Forward = Player->GetActorForwardVector();
 
 	FVector Loc = Player->GetActorLocation();
+
+	if (BoxComponent->Bounds.GetBox().IsInsideOrOn(Loc))
+		Failsafe->SetVisibility(true);
+	else {
+		Failsafe->SetVisibility(false);
+	}
 
 	float F = FVector::DotProduct(GetActorLocation() - Loc, Forward);
 

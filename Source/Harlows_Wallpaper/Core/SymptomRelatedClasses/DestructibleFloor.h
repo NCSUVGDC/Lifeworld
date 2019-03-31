@@ -57,6 +57,11 @@ public:
 	UPROPERTY()
 		FName TagName = "fall";
 
+	FTimerHandle TimerHandle;
+	FTimerHandle TimerHandle1;
+	FTimerHandle TimerHandle2;
+	FTimerHandle TimerHandle3;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
