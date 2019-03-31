@@ -1,99 +1,178 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "DestructibleFloor.h"
 
-
-// Sets default values
+// Initialization
 ADestructibleFloor::ADestructibleFloor()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-	AActor::SetActorTickEnabled(false);
-
+	//Actor doesn't need to tick
+	PrimaryActorTick.bCanEverTick = false;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Scene Component"));
 
+	//Box from floor to ceiling to ascertain objects in that area
+	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent Component"));
+	BoxComponent->SetupAttachment(RootComponent);
+
+	//The Destructible mesh for the floor, removed at end of symptom
 	DestructibleComponent = CreateDefaultSubobject<UDestructibleComponent>(TEXT("Destructible Component"));
 	DestructibleComponent->SetupAttachment(RootComponent);
 
+	//Static mesh that will replace dectructible mesh
+	Failsafe = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Component"));
+	Failsafe->SetupAttachment(RootComponent);
 
-	/**
-	static ConstructorHelpers::FObjectFinder<UDestructibleMesh> MeshContainer(TEXT("DestructibleMesh'/Game/HarlowsWallpaper/Environment/floor/ph_chess_board_DM.ph_chess_board_DM'"));
-	if (MeshContainer.Succeeded())
-	{
-		UDestructibleMesh* mesh = MeshContainer.Object;
-		DestructibleComponent->SetDestructibleMesh(mesh);
-	}
-	*/
+	//For now, Failsafe should only block the player
+	Failsafe->SetCollisionObjectType(ECollisionChannel::ECC_Pawn);
+	Failsafe->SetVisibility(false);
 
 	bCanBeDamaged = false;
-	destroyed = false;
 
+}
+
+void ADestructibleFloor::StartSymptom(float StartRestoreTime, float ForceRestoreTime)
+{
+	FTimerHandle TimerHandle;
+	FTimerHandle TimerHandle1;
+	FTimerHandle TimerHandle2;
+
+	float Delay = FMath::RandRange(4.f, 10.f);
+
+	//Set timer for start of recovery checks
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ADestructibleFloor::FallToRuin, Delay);
+
+	//Set timer for start of recovery checks
+	GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, StartRestoreTime + Delay);
+
+	//Set timer for forced recovery
+	GetWorldTimerManager().SetTimer(TimerHandle2, this, &ADestructibleFloor::ForceRestore, ForceRestoreTime + Delay);
+
+	
 }
 
 void ADestructibleFloor::FallToRuin()
 {
-	static FName FallingTag = FName(TEXT("FloorTrace"));
-	FCollisionQueryParams TraceParams(FallingTag, true, Instigator);
-	TArray<FHitResult> hits;
-	FVector startTrace = GetActorLocation();
-	FVector endTrace = startTrace + FVector(0, 0, 300);
 
-	//Remember initial position before being destroyed
-	position = DestructibleComponent->GetComponentLocation();
+	//Remember initial Position before being destroyed
+	Position = DestructibleComponent->GetComponentLocation();
 	bCanBeDamaged = true;
 
-	DestructibleComponent->ApplyDamage(1000, position, FVector(0, 0, -10), 100);
-	destroyed = true;
+	//Get bounds of floor up to ceiling
+	FBox FloorVolume = BoxComponent->Bounds.GetBox();
 
+	UE_LOG(LogTemp, Warning, TEXT("Fall %s\n"), *this->GetName());
+
+	//Find all actors that should fall
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TagName, FoundActors);
+
+	for (AActor* Current : FoundActors) {
+		
+		//Get bounding box of actor
+		FBox ActorBox = Current->GetComponentsBoundingBox();
+		
+		//Check if they are in the floor's bounds
+		if (FloorVolume.Intersect(ActorBox)) {
+			//Map their name to their transform and store it
+			Map.Add(Current->GetName(), Current->GetTransform());
+			UE_LOG(LogTemp, Warning, TEXT("%s is on %s\n"), *Current->GetName(), *this->GetName());
+		}
+	}
+
+	//Destruct mesh
+	DestructibleComponent->ApplyDamage(10000, Position, FVector(0, 0, -10), 100);
+
+}
+
+void ADestructibleFloor::StartChecking()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("%s should start checking\n"), *this->GetName());
+	FTimerHandle TimerHandle3;
+	float f = 1 / 60.0;
+
+	// Execute check for recovery at set intervals
+	GetWorldTimerManager().SetTimer(TimerHandle3, this, &ADestructibleFloor::Check, f, true, 0);
+	ShouldCheck = true;
+}
+
+void ADestructibleFloor::ForceRestore()
+{
+	if (ShouldCheck) {
+		//Restore regardless of if player is looking at it
+		ShouldCheck = false;
+		Restore();
+	}
 }
 
 void ADestructibleFloor::Restore()
 {
-	bCanBeDamaged = false;
-	DestructibleComponent->SetAllPhysicsLinearVelocity(FVector(0, 0, 0));
+	//UE_LOG(LogTemp, Warning, TEXT("Restore %s\n"), *this->GetName());
 
-	//Resetting destrucible mesh restores its state
-	DestructibleComponent->SetDestructibleMesh(DestructibleComponent->GetDestructibleMesh());
-	DestructibleComponent->SetWorldLocation(position);
-	destroyed = false;
-	for (int i = 0; i < size; i++) {
-		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Yellow, FString("Location: " + fallers[i]->GetActorLocation().ToString() + " | " + "Rotation: " + fallers[i]->GetActorRotation().ToString() + " | " + "Scale: " + fallers[i]->GetActorScale().ToString()));
-		GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Green, FString("Location: " + previousTrans[i].GetLocation().ToString() + " | " + "Rotation: " + previousTrans[i].GetRotation().ToString() + " | " + "Scale: " + previousTrans[i].GetScale3D().ToString()));
-		fallers[i]->SetActorTransform(previousTrans[i]);
+	ShouldCheck = false;
+
+	//Remove mesh now that's been used
+	DestructibleComponent->DestroyComponent();
+
+	//Set up Failsafe to be the new floor
+	Failsafe->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Failsafe->SetVisibility(true);
+	
+	//Get all actors that should've fallen
+	TArray<AActor*> FoundActors;
+	UGameplayStatics::GetAllActorsWithTag(GetWorld(), TagName, FoundActors);
+
+	//Sort the Map to ensure objects are ordered by z-value (Ensures objects don't get reset before the object that supports them)
+	Map.ValueSort([](const FTransform& A, const FTransform& B) {
+		return A.GetLocation().Z < B.GetLocation().Z; // sort transforms by z height
+	});
+
+	//Find stored actors and reset them
+	for (TPair<FString, FTransform>& Current : Map) {
+		//Iterate through actors to find correct one
+		for (AActor* F : FoundActors) {
+			if (Current.Key == F->GetName()) {
+				//Reset actor to stored Position if it hasn't already been
+				if (F->GetActorLocation().Z < -10) {
+					F->SetActorTransform(Current.Value);
+					//UE_LOG(LogTemp, Warning, TEXT("Reset %s\n"), *Current.Key);
+				}
+				break;
+			}
+		}
 	}
+
 }
 
 // Called when the game starts or when spawned
 void ADestructibleFloor::BeginPlay()
 {
 	Super::BeginPlay();
-
+	SetActorTickEnabled(false);
 }
 
-// Called every frame
 void ADestructibleFloor::Tick(float DeltaTime)
 {
-	if (destroyed) {
-		elapsedTime += DeltaTime;
-		Super::Tick(DeltaTime);
-		if (elapsedTime >= forceRestore) {
-			Restore();
-		}
-		else if (elapsedTime >= restoreStart) {
-			APawn* player = GetWorld()->GetFirstPlayerController()->GetPawn();
-			FVector forward = player->GetActorForwardVector();
-			FVector loc = player->GetActorLocation();
-			float f = FVector::DotProduct(GetActorLocation() - loc, forward);
-			if (f < 0) {
-				Restore();
-			}
-		}
-	}
 }
 
-void ADestructibleFloor::setTick(bool b)
+// Called at set interval during symptom recovery time
+void ADestructibleFloor::Check()
 {
-	PrimaryActorTick.bCanEverTick = b;
+	//If already recovered
+	if (!ShouldCheck) {
+		GetWorldTimerManager().ClearAllTimersForObject(this);
+		return;
+	}
+
+	//Check if player is looking at actor
+	APawn* Player = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	FVector Forward = Player->GetActorForwardVector();
+
+	FVector Loc = Player->GetActorLocation();
+
+	float F = FVector::DotProduct(GetActorLocation() - Loc, Forward);
+
+	//If player can't see actor
+	if (F < 0) {
+		Restore();
+	}
 }
 

@@ -24,35 +24,38 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void FallToRuin();
 
+	UFUNCTION(BlueprintCallable)
+		void StartSymptom(float StartRestoreTime, float ForceRestoreTime);
+
+	UFUNCTION()
+		void StartChecking();
+
+	UFUNCTION(BlueprintCallable)
+		void ForceRestore();
+
 	UFUNCTION()
 		void Restore();
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
+		UBoxComponent * BoxComponent;
+
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
 		UDestructibleComponent* DestructibleComponent;
 
-	UPROPERTY()
-		FVector position;
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere)
+		UStaticMeshComponent* Failsafe;
 
 	UPROPERTY()
-		bool destroyed;
-
-	UPROPERTY(BlueprintReadWrite)
-		TArray<AActor*> fallers;
-
-	UPROPERTY(BlueprintReadWrite)
-		int size;
-
-	UPROPERTY(BlueprintReadWrite)
-		TArray<FTransform> previousTrans;
+		FVector Position;
 
 	UPROPERTY()
-		float elapsedTime;
+		bool ShouldCheck = false;
 
 	UPROPERTY()
-		float restoreStart = 5;
+		TMap<FString, FTransform> Map;
 
 	UPROPERTY()
-		float forceRestore = 10;
+		FName TagName = "fall";
 
 protected:
 	// Called when the game starts or when spawned
@@ -63,7 +66,6 @@ public:
 	// Called every frame
 	void Tick(float DeltaTime);
 
-	// Set if the floor should tick
-	void setTick(bool b);
+	void Check();
 
 };
