@@ -21,17 +21,14 @@ public:
 	// Sets default values for this actor's properties
 	ADestructibleFloor();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 		void FallToRuin();
 
 	UFUNCTION(BlueprintCallable)
-		void StartSymptom(float StartRestoreTime, float ForceRestoreTime);
+		void StartSymptom(float StartRestoreTime);
 
 	UFUNCTION()
 		void StartChecking();
-
-	UFUNCTION(BlueprintCallable)
-		void ForceRestore();
 
 	UFUNCTION()
 		void Restore();
@@ -60,7 +57,6 @@ public:
 	FTimerHandle TimerHandle;
 	FTimerHandle TimerHandle1;
 	FTimerHandle TimerHandle2;
-	FTimerHandle TimerHandle3;
 
 protected:
 	// Called when the game starts or when spawned

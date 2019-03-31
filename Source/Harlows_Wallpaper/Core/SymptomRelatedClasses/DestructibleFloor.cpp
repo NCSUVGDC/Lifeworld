@@ -28,7 +28,7 @@ ADestructibleFloor::ADestructibleFloor()
 
 }
 
-void ADestructibleFloor::StartSymptom(float StartRestoreTime, float ForceRestoreTime)
+void ADestructibleFloor::StartSymptom(float StartRestoreTime)
 {
 
 	float Delay = FMath::RandRange(4.f, 10.f);
@@ -38,10 +38,6 @@ void ADestructibleFloor::StartSymptom(float StartRestoreTime, float ForceRestore
 
 	//Set timer for start of recovery checks
 	GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, StartRestoreTime);
-
-	//Set timer for forced recovery
-	GetWorldTimerManager().SetTimer(TimerHandle2, this, &ADestructibleFloor::ForceRestore, ForceRestoreTime);
-
 	
 }
 
@@ -84,18 +80,12 @@ void ADestructibleFloor::StartChecking()
 	//UE_LOG(LogTemp, Warning, TEXT("%s should start checking\n"), *this->GetName());
 	float f = 1 / 60.0;
 
-	// Execute check for recovery at set intervals
-	GetWorldTimerManager().SetTimer(TimerHandle3, this, &ADestructibleFloor::Check, f, true, 0);
-	ShouldCheck = true;
-}
+	//Remove mesh now that's been used
+	DestructibleComponent->DestroyComponent();
 
-void ADestructibleFloor::ForceRestore()
-{
-	if (ShouldCheck) {
-		//Restore regardless of if player is looking at it
-		ShouldCheck = false;
-		Restore();
-	}
+	// Execute check for recovery at set intervals
+	GetWorldTimerManager().SetTimer(TimerHandle2, this, &ADestructibleFloor::Check, f, true, 0);
+	ShouldCheck = true;
 }
 
 void ADestructibleFloor::Restore()
@@ -103,9 +93,6 @@ void ADestructibleFloor::Restore()
 	//UE_LOG(LogTemp, Warning, TEXT("Restore %s\n"), *this->GetName());
 
 	ShouldCheck = false;
-
-	//Remove mesh now that's been used
-	DestructibleComponent->DestroyComponent();
 
 	//Set up Failsafe to be the new floor
 	Failsafe->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
@@ -126,8 +113,9 @@ void ADestructibleFloor::Restore()
 		for (AActor* F : FoundActors) {
 			if (Current.Key == F->GetName()) {
 				//Reset actor to stored Position if it hasn't already been
-				if (F->GetActorLocation().Z < -10) {
-					F->SetActorTransform(Current.Value);
+				if (!F->GetActorTransform().Equals(Current.Value)) {
+					//F->SetActorTransform(Current.Value);
+					F-> SetActorLocationAndRotation(Current.Value.GetLocation(), Current.Value.GetRotation(), false, nullptr, ETeleportType::ResetPhysics);
 					UE_LOG(LogTemp, Warning, TEXT("%s Reset %s\n"), *this->GetName(), *Current.Key);
 				}
 				break;
@@ -157,20 +145,25 @@ void ADestructibleFloor::Check()
 		return;
 	}
 
+	//UE_LOG(LogTemp, Warning, TEXT("%s is still looking"), *this->GetName());
+
+
 	//Check if player is looking at actor
 	APawn* Player = GetWorld()->GetFirstPlayerController()->GetPawn();
 
-	FVector Forward = Player->GetActorForwardVector();
+	FVector Forward = GetWorld()->GetFirstPlayerController()->PlayerCameraManager->GetActorForwardVector();
 
 	FVector Loc = Player->GetActorLocation();
 
-	if (BoxComponent->Bounds.GetBox().IsInsideOrOn(Loc))
+	if (BoxComponent->Bounds.GetBox().IsInsideOrOn(Loc)){
 		Failsafe->SetVisibility(true);
+		return;
+	}
 	else {
 		Failsafe->SetVisibility(false);
 	}
 
-	float F = FVector::DotProduct(GetActorLocation() - Loc, Forward);
+	float F = FVector::DotProduct(Position - Loc, Forward);
 
 	//If player can't see actor
 	if (F < 0) {

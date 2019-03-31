@@ -141,8 +141,8 @@ void ASymptomsManager::Flee(AActor * SymptomActor)
 void ASymptomsManager::FallingFloor(AActor * SymptomActor)
 {
 	ADestructibleFloor* current = (ADestructibleFloor*)SymptomActor;
-	// First time is seconds before the start of recovery, second time is seconds before force restore
-	// Note* Timers are in seconds from start of symptom, floor falls between 4-10 seconds ine
-	current->StartSymptom(14, 19);
+	// Value is seconds before the start of recovery
+	// Note* Timers are in seconds from start of symptom, floor falls between 4-10 seconds in
+	current->StartSymptom(14);
 }
 
