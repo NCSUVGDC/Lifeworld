@@ -39,6 +39,7 @@ private:
 
 	float ddX;
 	float ddY;
+	int iterationCount = 0;
 
 	float timeSpotted;
 

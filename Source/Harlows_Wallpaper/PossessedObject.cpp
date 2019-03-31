@@ -25,12 +25,13 @@ void APossessedObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	float num = player->GetDotProductTo(object);
+	//float num = player->GetDotProductTo(object);
+	float num = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).X);
 	FString TheFloatStr = FString::SanitizeFloat(num);
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, *TheFloatStr);
 
-	if (player->GetDotProductTo(object) >= .75)
+	if (player->GetDotProductTo(object) >= .75 && !isSpotted )
 	{
 		isSpotted = true;
 		if (GEngine)
@@ -39,38 +40,44 @@ void APossessedObject::Tick(float DeltaTime)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Return to Normal"));
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Return to Normal"));
 
-			float ddX = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).X);
-			float ddY = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).Y);
-	//	object->SetActorLocation(startLoc);
-	//	object->SetActorRotation(startRot);
-	//	Destroy();
+		ddX = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).X);
+		ddY = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).Y);
 	}
-	else
+	else if ( isSpotted )
 	{
-		object->AddActorWorldOffset(FVector(0.05, 0, 0));
-	//	object->AddActorWorldRotation(FRotator(0,0,0.05));
-	}
+		FString ddxStr = "ddX: " + FString::SanitizeFloat(ddX);
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, *ddxStr);
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, *ddxStr);
+		if (ddX > 0.75)
+		{
+			ddX -= 0.75;
+			object->AddActorWorldOffset(FVector(-0.75, 0, 0));
+		}
 
-	if (isSpotted)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Retreat!"));
-		if ( ddX > .5 )
+		if (ddY > 0.75)
 		{
-			ddX -= .1;
-			object->AddActorWorldOffset(FVector(-.1, 0, 0));
+			ddY -= 0.75;
+			object->AddActorWorldOffset(FVector(0, 0.75, 0));
 		}
-		if (ddY > .5)
-		{
-			ddY -= .1;
-			object->AddActorWorldOffset(FVector(0, -.1, 0));
-		}
-		else if (ddX < .5 && ddY < .5)
+
+		if (ddX < 0.75 && ddY < 0.75)
 		{
 			Destroy();
+			isSpotted = false;
 			object->SetActorLocation(startLoc);
 		}
-
 	}
+	else if( iterationCount != 200 )
+	{
+		object->AddActorWorldOffset(FVector(0, 0.2, 0));
+		iterationCount++;
+	}
+/*
+	if (isSpotted)
+	{
+
+
+	}*/
 }
 
 void APossessedObject::setObject(AActor * obj)
