@@ -74,10 +74,15 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 			AActor* SPActor = Select();
 
 			if (SPActor != NULL) {
-				float scaleSize = 3;
+				scaleSize = 0.25;
+				tempScale = 0.25;
 				float distance = SADistance;
 				UE_LOG(LogTemp, Warning, TEXT("Distance to Scaled Item: %f"), distance);
-				FVector NewScale = FVector((distance / 260.0) * scaleSize, (distance / 260.0) * scaleSize, (distance / 260.0) * scaleSize);
+
+				float scaleUnit = 1 + (((scaleSize - 1) / 210) * (distance - 50));
+
+				FVector NewScale = FVector(scaleUnit, scaleUnit, scaleUnit);
+				//FVector NewScale = FVector((distance / 260.0) * scaleSize, (distance / 260.0) * scaleSize, (distance / 260.0) * scaleSize);
 				SPActor->SetActorScale3D(NewScale);
 				proceed = false;	// Makes it so Select() cannot be ran until no longer a trigger time
 			}
@@ -193,16 +198,37 @@ void ASizePerceptionActor::ScaleOriginal() {
 	for (int i = 0; i < SizePerceptionActors.Num(); i++) {
 		AActor* LoopActor = SizePerceptionActors[i];
 		FVector LAScale = LoopActor->GetActorScale();
-		if (LAScale.Size() > 1.7320508) {
+		if (LAScale.Size() > 1.7320508 && tempScale > 1) {
+			UE_LOG(LogTemp, Warning, TEXT("TEMPSCALE IS: %f"), tempScale);
+			FVector LoopActorLocation = LoopActor->GetActorLocation();
+			AActor* CameraAct = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager;
+			FVector PlayerLocation = CameraAct->GetActorLocation();
+			FVector DistanceVect = LoopActorLocation - PlayerLocation;
+			float distance = DistanceVect.Size();
+		
+			float scaleUnit = 1 + (((scaleSize - 1) / 210) * (distance - 50));
+		
+			if (scaleUnit < tempScale) {
+				FVector NewScale = FVector(scaleUnit, scaleUnit, scaleUnit);
+				LoopActor->SetActorScale3D(NewScale);
+				tempScale = scaleUnit;
+			}
+		}
+		else if (LAScale.Size() < 1.7120508 && tempScale < 1) {
+			UE_LOG(LogTemp, Warning, TEXT("TEMPSCALE IS: %f"), tempScale);
 			FVector LoopActorLocation = LoopActor->GetActorLocation();
 			AActor* CameraAct = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager;
 			FVector PlayerLocation = CameraAct->GetActorLocation();
 			FVector DistanceVect = LoopActorLocation - PlayerLocation;
 			float distance = DistanceVect.Size();
 
-			FVector NewScale = FVector((distance / 260.0) * 3, (distance / 260.0) * 3, (distance / 260.0) * 3);
+			float scaleUnit = 1 + (((scaleSize - 1) / 210) * (distance - 50));
 
-			LoopActor->SetActorScale3D(NewScale);
+			if (scaleUnit > tempScale) {
+				FVector NewScale = FVector(scaleUnit, scaleUnit, scaleUnit);
+				LoopActor->SetActorScale3D(NewScale);
+				tempScale = scaleUnit;
+			}
 		}
 		else {
 			LoopActor->SetActorScale3D(FVector(1, 1, 1));

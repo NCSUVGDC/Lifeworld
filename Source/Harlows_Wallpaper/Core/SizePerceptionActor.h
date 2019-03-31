@@ -50,11 +50,23 @@ private:
 	UPROPERTY()
 		USceneComponent* LifeWorldCamera;
 
-	//Distance of SelectedActor
+	// Distance of SelectedActor
 	UPROPERTY()
 		float SADistance;
+
+	// Current sizing scale
+	UPROPERTY()
+		float scaleSize;
 	
 	// Proceed with SizePerception activation
 	UPROPERTY()
 		bool proceed;
+
+	// Recent scale compared against in resizing to prevent regression
+	UPROPERTY()
+		float tempScale;
+
+	// Determines if scaling is going up or down
+	UPROPERTY()
+		bool initScaleUp;
 };
