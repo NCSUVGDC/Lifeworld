@@ -32,36 +32,45 @@ void APossessedObject::Tick(float DeltaTime)
 
 	if (player->GetDotProductTo(object) >= .75)
 	{
+		isSpotted = true;
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Return to Normal"));
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Return to Normal"));
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Return to Normal"));
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Return to Normal"));
-		//object->SetActorLocation(startLoc);
-		//object->SetActorRotation(startRot);
-		Destroy();
+
+			float ddX = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).X);
+			float ddY = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).Y);
+	//	object->SetActorLocation(startLoc);
+	//	object->SetActorRotation(startRot);
+	//	Destroy();
 	}
 	else
 	{
-		//object->AddActorWorldOffset(FVector(5, 0, 0));
-		//object->AddActorWorldRotation(FRotator(0,0,5));
+		object->AddActorWorldOffset(FVector(0.05, 0, 0));
+	//	object->AddActorWorldRotation(FRotator(0,0,0.05));
 	}
 
-	/*if (startLoc != FVector::ZeroVector)
+	if (isSpotted)
 	{
-	float num = player->GetDotProductTo(object);
-	FString TheFloatStr = FString::SanitizeFloat(num);
-	if (GEngine)
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Green, *TheFloatStr);
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Retreat!"));
+		if ( ddX > .5 )
+		{
+			ddX -= .1;
+			object->AddActorWorldOffset(FVector(-.1, 0, 0));
+		}
+		if (ddY > .5)
+		{
+			ddY -= .1;
+			object->AddActorWorldOffset(FVector(0, -.1, 0));
+		}
+		else if (ddX < .5 && ddY < .5)
+		{
+			Destroy();
+			object->SetActorLocation(startLoc);
+		}
 
-	if (player->GetDotProductTo(object) >= .75)
-	{
-	object->SetActorLocation(startLoc);
-	Destroy();
 	}
-
-	}*/
-
 }
 
 void APossessedObject::setObject(AActor * obj)
@@ -78,36 +87,8 @@ void APossessedObject::setPlayer(AActor * ply)
 
 void APossessedObject::DoASpoopyThing()
 {
-	FVector force = FVector(0, 0, 10000);
-
-	UStaticMeshComponent* mesh = Cast<UStaticMeshComponent>(object->GetRootComponent());
 
 
-
-	if (mesh)
-	{
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Orange, TEXT("SPOOPY"));
-		mesh->AddForce(FVector::RightVector * 10000, NAME_None, true);
-	}
-	else
-	{
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, TEXT("Cast Failed"));
-	}
-
-	//mesh->AddForce(force * mesh->GetMass() );
-
-	/*	FVector Orgin;
-	FVector BoundsExtent;
-	object->GetActorBounds(false, Orgin, BoundsExtent);
-
-	FVector point = UKismetMathLibrary::RandomPointInBoundingBox(object->GetActorLocation(), BoundsExtent);
-	*/
-
-	//mesh->AddImpulseAtLocation(force, object->GetActorLocation() );
-	//mesh->AddRadialImpulse( point, 10, 5000.0f, ERadialImpulseFalloff::RIF_Constant, true);
-	//	mesh->AddAngularImpulse(force);
 
 }
 

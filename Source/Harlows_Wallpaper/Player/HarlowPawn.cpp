@@ -119,7 +119,7 @@ void AHarlowPawn::ImposeDoubleTake()
 	for (AActor* Object : DoubleTakeActors)
 	{
 		float DotProd = (GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager)->GetDotProductTo(Object);
-		if (DotProd >= 0.4 && DotProd < 0.6)
+		if (DotProd >= 0.3 && DotProd < 0.7)
 		{
 			//Spawn a new PossessObject and tie player and object to it
 			APossessedObject* pj = (APossessedObject*)GetWorld()->SpawnActor(APossessedObject::StaticClass());

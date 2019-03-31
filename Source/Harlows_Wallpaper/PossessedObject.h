@@ -35,7 +35,10 @@ private:
 
 	AActor * player;
 
-	bool isSpotted;
+	bool isSpotted = false;
+
+	float ddX;
+	float ddY;
 
 	float timeSpotted;
 
