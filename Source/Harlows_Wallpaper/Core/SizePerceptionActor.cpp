@@ -41,7 +41,7 @@ void ASizePerceptionActor::BeginPlay()
 				if (Symptom == FName("SizePerception"))
 				{
 					SizePerceptionActors.Add(SymptomActor);
-					UE_LOG(LogTemp, Warning, TEXT("Added Actor: %s"), *SymptomActor->GetName());
+					UE_LOG(LogTemp, Warning, TEXT("Added %s"), *SymptomActor->GetName());
 					SymptomActor->Tags.Remove(FName("SizePerception"));
 				}
 			}
@@ -61,7 +61,7 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Causes any abnormally sized objects to scale to its original size as the player gets closer
-	//ScaleOriginal();
+	ScaleOriginal();
 
 	// Gets the number of seconds since game started as an int
 	float realtimeSeconds = UGameplayStatics::GetRealTimeSeconds(GetWorld());
@@ -194,8 +194,11 @@ AActor* ASizePerceptionActor::Select()
 
 // Scales an actor back to its original size
 void ASizePerceptionActor::ScaleOriginal() {
+	UE_LOG(LogTemp, Error, TEXT("ScaleOriginal began"));
+	AActor* LoopActor;
 	for (int i = 0; i < SizePerceptionActors.Num(); i++) {
-		AActor* LoopActor = SizePerceptionActors[i];
+		UE_LOG(LogTemp, Error, TEXT("ScaleOriginal started the for loop!"));
+		LoopActor = SizePerceptionActors[i];
 		FVector LAScale = LoopActor->GetActorScale();
 		if (LAScale.Size() > 1.7320508 && tempScale > 1) {				// If the current scale is higher than <1,1,1> & it was sized up...
 			FVector LoopActorLocation = LoopActor->GetActorLocation();	// Gets location of actor
@@ -260,6 +263,10 @@ void ASizePerceptionActor::Scale(int scalSize) {
 		TArray<UStaticMeshComponent*> DupeComponents;								// Duplicate actor USMC
 		DuplicateMeshActor->GetComponents<UStaticMeshComponent>(DupeComponents);	// Duplicate actor USMC
 		UStaticMeshComponent* dupeMeshBoiComp = DupeComponents[0];					// Duplicate actor USMC
+		if (UPrimitiveComponent* PrimitiveComponent = DuplicateMeshActor->FindComponentByClass<UPrimitiveComponent>())
+		{
+			PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);	// Duplicate actor ignore collisions
+		}
 		dupeMeshBoiComp->SetSimulatePhysics(false);									// Duplicate actor disable physics
 		dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);					// Duplicate actor Mesh
 		dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);								// Duplicate actor Mesh
