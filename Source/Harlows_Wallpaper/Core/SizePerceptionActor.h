@@ -25,6 +25,9 @@ public:
 	// Brings a resized actor back to normal
 	void ScaleOriginal();
 
+	// Scales an actor based on scaleSize and distance
+	void Scale(int scaleSize);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -66,7 +69,7 @@ private:
 	UPROPERTY()
 		float tempScale;
 
-	// Determines if scaling is going up or down
+	// Duplicate actor being manipulated by Size Perception
 	UPROPERTY()
-		bool initScaleUp;
+		AActor* DuplicateMeshActor;
 };
