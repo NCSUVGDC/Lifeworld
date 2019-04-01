@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Phantom.h"
+#include "DrawDebugHelpers.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 
@@ -26,34 +27,41 @@ void APhantom::BeginPlay()
 void APhantom::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	float num = player->GetDotProductTo(this);
-	FString TheFloatStr = FString::SanitizeFloat(num);
+	float dotProdH = player->GetHorizontalDotProductTo(this);
+	float dotProd = player->GetDotProductTo(this);
+	FString dpsh = "Hrz: " + FString::SanitizeFloat( dotProdH );
+	FString dps = "Nml:" + FString::SanitizeFloat(dotProd);
 	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, *TheFloatStr);
-
-	if (!isSeen && player->GetDotProductTo(this) >= 0.5)
 	{
-		isSeen = true;
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, *dps);
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Turquoise, *dpsh);
+	}
+
+
+	if (!isSpotted && ( player->GetDotProductTo(this) >= 0.65 || player->GetHorizontalDotProductTo(this) >= 0.6) )
+	{
+		isSpotted = true;
 		timeSpotted = UGameplayStatics::GetRealTimeSeconds(GetWorld());
 		if (GEngine)
 			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Purple, TEXT("Spotted!"));
 	}
 
-	if (isSeen)
+	if (isSpotted)
 	{
-		if (player->GetDotProductTo(this) > 0.70 || UGameplayStatics::GetRealTimeSeconds(GetWorld()) - timeSpotted > 3.0f)
+		if (player->GetHorizontalDotProductTo(this) > 0.75 || player->GetDotProductTo(this) > 0.75 || UGameplayStatics::GetRealTimeSeconds(GetWorld()) - timeSpotted > 3.0f)
 		{
-			isSeen = false;
+			isSpotted = false;
 			SetActorHiddenInGame(true);
 			SetActorTickEnabled(false);
 			if (GEngine)
 				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Blue, TEXT("Bye Bye!"));
 
+
 		}
 	}
 
 }
+
 
 void APhantom::SetPlayer(AActor * actor)
 {

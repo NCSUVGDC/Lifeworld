@@ -20,6 +20,7 @@ protected:
 	virtual void BeginPlay() override;
 
 
+
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -34,9 +35,8 @@ private:
 
 	AActor * player;
 
-	bool isSeen = false;
+	bool isSpotted = false;
 
 	float timeSpotted = 0.0f;
-
 
 };

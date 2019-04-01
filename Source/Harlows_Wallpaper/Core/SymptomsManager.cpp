@@ -2,6 +2,7 @@
 
 #include "SymptomsManager.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
 
 // Sets default values
@@ -159,23 +160,52 @@ void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor)
 	}
 
 	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running DoubleTake Symptom on Actor %s"), *SymptomActor->GetName());
+	
+	//Tells if we found a suitable StaticMeshActor to move with this symptom
+	bool foundActor = false;
 
-	// Add actors to symptom array
-	for (AActor* Object : DoubleTakeActors)
+	//If we dont find a StaticMeshActor within player's periphery, this will allow us to at least possess the closest thing
+	AActor* closestObject = DoubleTakeActors[0];
+	float closestDot = -1;
+
+	// Iterate through list of possessable objects
+	for (AActor* object : DoubleTakeActors)
 	{
-		float DotProd = GetDotProductTo(Object);
-		if (DotProd >= 0.4 && DotProd < 0.6)
+		float dotProd = (GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager)->GetDotProductTo(object);
+		//If object is in periphery, possess with this symptom
+		if (dotProd >= 0.7 && dotProd < 0.8)
 		{
-			//Spawn a new PossessObject and tie player and object to it
+			//Spawn a new PossessObject and tie both player and object to it
 			APossessedObject* pj = (APossessedObject*)GetWorld()->SpawnActor(APossessedObject::StaticClass());
 
-			pj->setObject(Object);
-			pj->setPlayer(SymptomActor);
+			pj->setObject(object);
+			pj->setPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+			//Initiate movement in  possessed object
 			pj->DoASpoopyThing();
+			foundActor = true;
 			break;
+		}
+		//If not in periphery, check if it is closer to player's view than current "closestObject"
+		else if ( dotProd > closestDot && dotProd < .8 )
+		{
+			closestObject = object;
+			closestDot = dotProd;
 		}
 	}
 
+	//If an actor was not found in player's periphery, possess what was deemed the closest object
+	if (!foundActor)
+	{
+		//Spawn a new PossessObject and tie player and object to it
+		APossessedObject* pj = (APossessedObject*)GetWorld()->SpawnActor(APossessedObject::StaticClass());
+
+		pj->setObject(closestObject);
+		pj->setPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+		pj->DoASpoopyThing();
+		foundActor = true;
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Cyan, TEXT("Running Double-Take!"));
+	}
 }
 
 void ASymptomsManager::ImposeWarpingWalls(AActor * SymptomActor) {}
@@ -191,27 +221,88 @@ void ASymptomsManager::ImposePhantom(AActor * SymptomActor)
 
 	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running Phantom Symptom on Actor %s"), *SymptomActor->GetName());
 
+	//Generate FHitResult and CollisionParams that will be needed for the LineTrace
+	FHitResult OutHit;
+	FCollisionQueryParams CollisionParams;
 
-	//Get reference to phantom
-	//Find the phantom that exists in the world and store a reference to it
-	TArray<AActor*> GhostsNStuff;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APhantom::StaticClass(), GhostsNStuff);
-	//	FString NumStr = FString::FromInt(GhostsNStuff.Num());
-	//	if (GEngine)
-	//		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, *NumStr);
+	//Calculate world position + rotation of Camera (Player's headset)
+	FVector Start = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation();
+	//Set the height near the floor
+	Start.Z = 17;
 
-	//If we have the one phantom found, store the reference at index 0 of TArray
-	if (GhostsNStuff.Num() == 1)
+	//Get vector of player's right side + calculate end of line for LineTrace
+	FVector RightVector = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetTransformComponent()->GetRightVector();
+	FVector End = ((RightVector * 90.f) + Start);
+	End.Z = 17;
+
+
+	bool isHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, CollisionParams);
+
+	//If nothing is hit, good to spawn phantom
+	if (!isHit)
 	{
-		phantom = (APhantom*)GhostsNStuff[0];
-		phantom->SetActorHiddenInGame(false);
-		phantom->SetPlayer( SymptomActor );
-		FVector ghostLoc = SymptomActor->GetActorLocation();
-		ghostLoc += FVector(-50, 300, 0);
-		phantom->SetActorLocation(ghostLoc);
-		phantom->SetActorTickEnabled(true);
+		//Get reference to phantom
+		//Find the phantom that exists in the world and store a reference to it
+		TArray<AActor*> GhostsNStuff;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APhantom::StaticClass(), GhostsNStuff);
+
+		//If we have the one phantom found, store the reference at index 0 of TArray
+		if (GhostsNStuff.Num() == 1)
+		{
+			phantom = (APhantom*)GhostsNStuff[0];
+			phantom->SetActorHiddenInGame(false);
+			//Set phantom's reference to player
+			phantom->SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+			//Spawn phantom at end of line from LineTrace
+			FVector ghostLoc = ((RightVector * 80.f) + Start);
+			ghostLoc.Z = 0;
+			phantom->SetActorLocation(ghostLoc);
+			phantom->SetActorTickEnabled(true);
+			//Rotate phantom to face player
+			FRotator facePlayer = UKismetMathLibrary::FindLookAtRotation(phantom->GetActorLocation(), GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation());
+			facePlayer.Roll = 0;
+			facePlayer.Pitch = 0;
+			facePlayer.Yaw -= 90;
+			phantom->SetActorRotation(facePlayer);
+			return;
+		}
 	}
 
+	//Right side was obstructed, so try spawning on left side
+	//Flip right vector + draw new linetrace
+	FVector LeftVector = -RightVector;
+	End = ((LeftVector * 90.f) + Start);
+	End.Z = 17;
+	isHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, CollisionParams);
+
+	//If nothing is hit on left side, spawn phantom at end of LineTrace
+	if (!isHit)
+	{
+		//Get reference to phantom
+		//Find the phantom that exists in the world and store a reference to it
+		TArray<AActor*> GhostsNStuff;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), APhantom::StaticClass(), GhostsNStuff);
+
+		//If we have the one phantom found, store the reference at index 0 of TArray
+		if (GhostsNStuff.Num() == 1)
+		{
+			phantom = (APhantom*)GhostsNStuff[0];
+			phantom->SetActorHiddenInGame(false);
+			//Get reference to player and pass to phantom
+			phantom->SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+			//Get location of end of line trace, spawn phantom there
+			FVector ghostLoc = ((LeftVector * 80.f) + Start);
+			ghostLoc.Z = 0;
+			phantom->SetActorLocation(ghostLoc);
+			phantom->SetActorTickEnabled(true);
+			//Make phantom face player
+			FRotator facePlayer = UKismetMathLibrary::FindLookAtRotation(phantom->GetActorLocation(), GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation());
+			facePlayer.Roll = 0;
+			facePlayer.Pitch = 0;
+			facePlayer.Yaw -= 90;
+			phantom->SetActorRotation(facePlayer);
+		}
+	}
 }
 
 void ASymptomsManager::ImposeBackIsTurned(AActor * SymptomActor) {}
