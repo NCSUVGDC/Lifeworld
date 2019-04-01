@@ -61,7 +61,7 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Causes any abnormally sized objects to scale to its original size as the player gets closer
-	ScaleOriginal();
+	
 
 	// Gets the number of seconds since game started as an int
 	float realtimeSeconds = UGameplayStatics::GetRealTimeSeconds(GetWorld());
@@ -72,6 +72,7 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 	case 10:
 		if (proceed) {
 			Scale(9);
+			ScaleOriginal();
 		}
 		break;
 	//case 19:
