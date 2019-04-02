@@ -61,7 +61,7 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	// Causes any abnormally sized objects to scale to its original size as the player gets closer
-	
+	ScaleOriginal();
 
 	// Gets the number of seconds since game started as an int
 	float realtimeSeconds = UGameplayStatics::GetRealTimeSeconds(GetWorld());
@@ -72,7 +72,6 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 	case 10:
 		if (proceed) {
 			Scale(9);
-			ScaleOriginal();
 		}
 		break;
 	//case 19:
@@ -196,20 +195,17 @@ AActor* ASizePerceptionActor::Select()
 // Scales an actor back to its original size
 void ASizePerceptionActor::ScaleOriginal() {
 	UE_LOG(LogTemp, Error, TEXT("ScaleOriginal began"));
-	AActor* LoopActor;
-	for (int i = 0; i < SizePerceptionActors.Num(); i++) {
-		UE_LOG(LogTemp, Error, TEXT("ScaleOriginal started the for loop!"));
-		LoopActor = SizePerceptionActors[i];
-		FVector LAScale = LoopActor->GetActorScale();
+	if (DuplicateMeshActor != NULL) {
+		FVector LAScale = DuplicateMeshActor->GetActorScale();
 		if (LAScale.Size() > 1.7320508 && tempScale > 1) {				// If the current scale is higher than <1,1,1> & it was sized up...
-			FVector LoopActorLocation = LoopActor->GetActorLocation();	// Gets location of actor
+			FVector LoopActorLocation = DuplicateMeshActor->GetActorLocation();	// Gets location of actor
 			AActor* CameraAct = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager; // Gets player camera as an actor
 			FVector PlayerLocation = CameraAct->GetActorLocation();		// Gets location of player camera
 			FVector DistanceVect = LoopActorLocation - PlayerLocation;	// Gets distance vector between LoopActor and player camera
 			float distance = DistanceVect.Size();						// Gets distance of distance vector
-		
+
 			float scaleUnit = 1 + (((scaleSize - 1) / 190) * (distance - 70));	// Calculates what the scaling would become at current distance
-		
+
 			if (scaleUnit < tempScale) {										// If the scaling would be lower than the current scaling...
 				FVector NewScale = FVector(scaleUnit, scaleUnit, scaleUnit);	// Create a scale vector of new scaling
 				DuplicateMeshActor->SetActorScale3D(NewScale);					// Scales the duplicate actor to the new scale vector
@@ -217,7 +213,7 @@ void ASizePerceptionActor::ScaleOriginal() {
 			}
 		}
 		else if (LAScale.Size() < 1.7120508 && tempScale < 1) {			// If the current scale is lower than <1,1,1> & it was sized down...
-			FVector LoopActorLocation = LoopActor->GetActorLocation();	// Gets location of actor
+			FVector LoopActorLocation = DuplicateMeshActor->GetActorLocation();	// Gets location of actor
 			AActor* CameraAct = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager; // Gets player camera as an actor
 			FVector PlayerLocation = CameraAct->GetActorLocation();		// Gets location of player camera
 			FVector DistanceVect = LoopActorLocation - PlayerLocation;	// Gets distance vector between LoopActor and player camera
