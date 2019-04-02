@@ -71,17 +71,17 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 	switch (realtimeSecondsInt){
 	case 10:
 		if (proceed) {
-			Scale(9);
+			Scale(5);
 		}
 		break;
-	//case 19:
-	//	tempScale = 1;	// Resets tempScale so things go back to normal
-	//	break;
-	//case 20:
-	//	if (proceed) {
-	//		Scale(0.5);
-	//	}
-	//	break;
+	case 19:
+		tempScale = 1;	// Resets tempScale so things go back to normal
+		break;
+	case 20:
+		if (proceed) {
+			Scale(0.5);
+		}
+	break;
 	//case 30:
 	//	tempScale = 1;
 	//	break;
@@ -187,6 +187,15 @@ AActor* ASizePerceptionActor::Select()
 	if (SelectedActor != NULL) {
 		UE_LOG(LogTemp, Error, TEXT("FINAL SELECTEDACTOR IS: %s"), *SelectedActor->GetName());
 	}
+	
+	FString DebugMsg(TEXT("FINAL SELECTED ACTOR IS: "));
+	FString DebugSub(SelectedActor->GetName());
+	DebugMsg.Append(DebugSub);
+	if (GEngine) {
+		for (int i = 0; i < 25; i++) {
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, DebugMsg);
+		}
+	}
 
 	// Returns the actor that was decidedly best for Size Perception
 	return SelectedActor;
@@ -194,7 +203,6 @@ AActor* ASizePerceptionActor::Select()
 
 // Scales an actor back to its original size
 void ASizePerceptionActor::ScaleOriginal() {
-	UE_LOG(LogTemp, Error, TEXT("ScaleOriginal began"));
 	if (DuplicateMeshActor != NULL) {
 		FVector LAScale = DuplicateMeshActor->GetActorScale();
 		if (LAScale.Size() > 1.7320508 && tempScale > 1) {				// If the current scale is higher than <1,1,1> & it was sized up...
