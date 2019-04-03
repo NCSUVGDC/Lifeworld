@@ -237,6 +237,8 @@ void ASizePerceptionActor::ScaleOriginal() {
 		}
 		else {
 			DuplicateMeshActor->SetActorScale3D(FVector(1, 1, 1));				// If neither apply, make the actor scaled at <1,1,1>
+			SPActor->SetActorHiddenInGame(false);								// Reveals the original actor
+			DuplicateMeshActor->Destroy();										// Destroys the duplicate
 		}
 	}
 }
@@ -244,13 +246,14 @@ void ASizePerceptionActor::ScaleOriginal() {
 // Scales an actor based on scaleSize and distance
 void ASizePerceptionActor::Scale(int scalSize) {
 	UE_LOG(LogTemp, Warning, TEXT("ACTIVATED ONLY ONCE"));
-	AActor* SPActor = Select(); // The original instance of the actor that will be sized
+	SPActor = Select(); // The original instance of the actor that will be sized
 
 	// If the actor exists...
 	if (SPActor != NULL) {
 		scaleSize = scalSize;
 		tempScale = scaleSize; // Used later on to cause resizing
 
+		SPActor->GetAttachedActors(SPActorAttached); // Makes TArray of attached actors
 		SPActor->SetActorHiddenInGame(true); // Hides the original actor so it doesn't cause problems
 
 		// Creates duplicate actor that will be sized
@@ -258,24 +261,121 @@ void ASizePerceptionActor::Scale(int scalSize) {
 		DuplicateMeshActor = GetWorld()->SpawnActorAbsolute<AActor>(SPActor->GetClass(), SPActor->GetTransform(), SpawnParams);
 
 		// Gets information about the original actor's mesh
-		TArray<UStaticMeshComponent*> Components;						// Original actor USMC
-		SPActor->GetComponents<UStaticMeshComponent>(Components);		// Original actor USMC
-		UStaticMeshComponent* meshBoiComp = Components[0];				// Original actor USMC
-		UStaticMesh* meshBoiMesh = meshBoiComp->GetStaticMesh();		// Original actor Mesh
+		TArray<UStaticMeshComponent*> Components;						// Original actor USMC: Declares array of USMC
+		SPActor->GetComponents<UStaticMeshComponent>(Components);		// Original actor USMC: Sets array of USMC
+		UStaticMeshComponent* meshBoiComp = Components[0];				// Original actor USMC: Initializes variable to USMC in array
+		UStaticMesh* meshBoiMesh = meshBoiComp->GetStaticMesh();		// Original actor Mesh: Gets Static Mesh of USMC
 		UMaterialInterface* materialBoi = meshBoiComp->GetMaterial(0);	// Original actor Material
 
 		// Applies information to duplicate actor
-		TArray<UStaticMeshComponent*> DupeComponents;								// Duplicate actor USMC
-		DuplicateMeshActor->GetComponents<UStaticMeshComponent>(DupeComponents);	// Duplicate actor USMC
-		UStaticMeshComponent* dupeMeshBoiComp = DupeComponents[0];					// Duplicate actor USMC
+		TArray<UStaticMeshComponent*> DupeComponents;								// Duplicate actor USMC: Declares array of USMC
+		DuplicateMeshActor->GetComponents<UStaticMeshComponent>(DupeComponents);	// Duplicate actor USMC: Sets array of USMC
+		UStaticMeshComponent* dupeMeshBoiComp = DupeComponents[0];					// Duplicate actor USMC: Initializes variable to USMC in array
+
 		if (UPrimitiveComponent* PrimitiveComponent = DuplicateMeshActor->FindComponentByClass<UPrimitiveComponent>())
 		{
 			PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);	// Duplicate actor ignore collisions
 		}
+
 		dupeMeshBoiComp->SetSimulatePhysics(false);									// Duplicate actor disable physics
-		dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);					// Duplicate actor Mesh
+		dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);					// Duplicate actor allows Mesh
 		dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);								// Duplicate actor Mesh
 		dupeMeshBoiComp->SetMaterial(0, materialBoi);								// Duplicate actor Material
+
+		// If SPActor has attached actors...
+		if (SPActorAttached.Num() != 0) {
+			for (int i = 0; i < SPActorAttached.Num(); i++) {
+
+				AActor* loopyActor = SPActorAttached[i];
+
+				UE_LOG(LogTemp, Warning, TEXT("Actor name is %s"), *loopyActor->GetName());
+
+				// Creates duplicate actor that will be sized
+				FActorSpawnParameters SpawnParams;
+				AActor* DuplicateMeshActorAttach = GetWorld()->SpawnActorAbsolute<AActor>(loopyActor->GetClass(), loopyActor->GetTransform(), SpawnParams);
+				
+
+				// Gets information about the original actor's mesh
+				TArray<UStaticMeshComponent*> Components;						// Original actor USMC: Declares array of USMC
+				loopyActor->GetComponents<UStaticMeshComponent>(Components);		// Original actor USMC: Sets array of USMC
+				UStaticMeshComponent* meshBoiComp = Components[0];				// Original actor USMC: Initializes variable to USMC in array
+				UStaticMesh* meshBoiMesh = meshBoiComp->GetStaticMesh();		// Original actor Mesh: Gets Static Mesh of USMC
+				UMaterialInterface* materialBoi = meshBoiComp->GetMaterial(0);	// Original actor Material
+
+				// Applies information to duplicate actor
+				TArray<UStaticMeshComponent*> DupeComponents;								// Duplicate actor USMC: Declares array of USMC
+				DuplicateMeshActorAttach->GetComponents<UStaticMeshComponent>(DupeComponents);	// Duplicate actor USMC: Sets array of USMC
+				UStaticMeshComponent* dupeMeshBoiComp = DupeComponents[0];					// Duplicate actor USMC: Initializes variable to USMC in array
+
+				if (UPrimitiveComponent* PrimitiveComponent = DuplicateMeshActorAttach->FindComponentByClass<UPrimitiveComponent>())
+				{
+					PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);	// Duplicate actor ignore collisions
+				}
+
+				dupeMeshBoiComp->SetSimulatePhysics(false);									// Duplicate actor disable physics
+				dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);					// Duplicate actor allows Mesh
+				dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);								// Duplicate actor Mesh
+				dupeMeshBoiComp->SetMaterial(0, materialBoi);								// Duplicate actor Material
+
+				DuplicateMeshActorAttach->AttachToActor(DuplicateMeshActor, FAttachmentTransformRules::SnapToTargetIncludingScale);
+				TArray<AActor*> TESTATTACHARRAY;
+				DuplicateMeshActor->GetAttachedActors(TESTATTACHARRAY); // Makes TArray of attached actors
+				if (TESTATTACHARRAY.Num() != 0) {
+					AActor* TESTARRAY = TESTATTACHARRAY[i];
+					UE_LOG(LogTemp, Warning, TEXT("ATTACHED IS %s"), *TESTARRAY->GetName());
+				}
+				
+
+
+				// Creates duplicate attached actor and snaps to DuplicateMeshActor
+				//AActor* DuplicateMeshAttach = GetWorld()->SpawnActorAbsolute<AActor>(SPActorAttached[i]->GetClass(), SPActorAttached[i]->GetTransform(), SpawnParams);
+				//DuplicateMeshAttach->AttachToActor(DuplicateMeshActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+
+				// Gets information about original attached actor
+				//bool hasStaticMesh;
+				//TArray<UStaticMeshComponent*> ComponentsAttach;									// Original attached actor USMC: Declares array of USMC
+				//SPActorAttached[i]->GetComponents<UStaticMeshComponent>(ComponentsAttach);		// Original attached actor USMC: Sets array of USMC
+				//if (ComponentsAttach.Num() != 0) {												// If original attached actor has a Static Mesh component...
+				//	UE_LOG(LogTemp, Warning, TEXT("IT GRABBED THE ORIGINAL STUFF"));
+				//	UStaticMeshComponent* meshBoiComp = ComponentsAttach[0];					// Original attached actor USMC: Initializes variable to USMC in array
+				//	hasStaticMesh = true;														// States that it has a Static Mesh, not a vanilla Mesh
+				//	UStaticMesh* meshBoiMesh = meshBoiComp->GetStaticMesh();					// Original attached actor StaticMesh
+				//}
+				//else {	// For clock																// If original attached actor does not have a Static Mesh component...
+				//	TArray<USkeletalMeshComponent*> Components;										// Original attached actor UMC: Declares array of UMC
+				//	SPActorAttached[i]->GetComponents<USkeletalMeshComponent>(Components);			// Original attached actor UMC: Sets array of UMC
+				//	USkeletalMeshComponent* meshBoiComp = Components[0];							// Original attached actor UMC: Initializes variable to UMC in array
+				//	hasStaticMesh = false;															// States that it has a vanilla Mesh, not a Static Mesh
+				//	USkeletalMesh* meshBoiMesh = meshBoiComp->GetSkeletalMesh();					// Original attached actor Mesh
+				//}
+				//UMaterialInterface* materialBoi = meshBoiComp->GetMaterial(0);				// Original attached actor Material
+
+				// Applies information to duplicate attached actor
+				//if (UPrimitiveComponent* PrimitiveComponent = SPActorAttached[i]->FindComponentByClass<UPrimitiveComponent>())
+				//{
+				//	PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);	// Duplicate attached actor ignore collisions
+				//}
+				//if (hasStaticMesh) {
+				//	UE_LOG(LogTemp, Warning, TEXT("IT APPLIED THE ORIGINAL STUFF"));
+				//	TArray<UStaticMeshComponent*> DupeComponentsAttach;								// Duplicate attached actor USMC: Declares array of USMC
+				//	SPActorAttached[i]->GetComponents<UStaticMeshComponent>(DupeComponentsAttach);	// Duplicate attached actor USMC: Sets array of USMC
+				//	UStaticMeshComponent* dupeMeshBoiComp = DupeComponentsAttach[0];				// Duplicate attached actor USMC: Initializes variable to USMC in array
+				//	dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);						// Duplicate attached actor allows Mesh
+				//	dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);									// Duplicate attached actor Mesh
+				//}
+				//else { // For clock
+				//	TArray<USkeletalMeshComponent*> DupeComponents;									// Duplicate attached actor UMC: Declares array of USMC
+				//	SPActorAttached[i]->GetComponents<USkeletalMeshComponent>(DupeComponents);		// Duplicate attached actor UMC: Sets array of USMC
+				//	USkeletalMeshComponent* dupeMeshBoiComp = DupeComponents[0];					// Duplicate attached actor UMC: Initializes variable to USMC in array
+				//	dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);						// Duplicate attached actor allows Mesh
+				//	dupeMeshBoiComp->SetSkeletalMesh(meshBoiMesh);									// Duplicate attached actor Mesh
+				//}
+				
+				
+				//dupeMeshBoiComp->SetSimulatePhysics(false);									// Duplicate attached actor disable physics
+				//dupeMeshBoiComp->SetMaterial(0, materialBoi);								// Duplicate attached actor Material
+			}
+		}
 
 		// Grabs distance from chosen object
 		float distance = SADistance;

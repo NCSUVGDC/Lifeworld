@@ -72,4 +72,12 @@ private:
 	// Duplicate actor being manipulated by Size Perception
 	UPROPERTY()
 		AActor* DuplicateMeshActor;
+
+	// The original instance of the actor that will be sized
+	UPROPERTY()
+		AActor* SPActor;
+
+	// Array of actors attached to SPActor
+	UPROPERTY()
+		TArray<AActor*> SPActorAttached;
 };
