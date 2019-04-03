@@ -80,4 +80,8 @@ private:
 	// Array of actors attached to SPActor
 	UPROPERTY()
 		TArray<AActor*> SPActorAttached;
+
+	// Array of actors attached to DuplicateMeshActor
+	UPROPERTY()
+		TArray<AActor*> DupeActorAttached;
 };

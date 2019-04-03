@@ -186,17 +186,16 @@ AActor* ASizePerceptionActor::Select()
 	/// States what SelectedActor ultimately becomes
 	if (SelectedActor != NULL) {
 		UE_LOG(LogTemp, Error, TEXT("FINAL SELECTEDACTOR IS: %s"), *SelectedActor->GetName());
-	}
-	
-	FString DebugMsg(TEXT("FINAL SELECTED ACTOR IS: "));
-	FString DebugSub(SelectedActor->GetName());
-	DebugMsg.Append(DebugSub);
-	if (GEngine) {
-		for (int i = 0; i < 25; i++) {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, DebugMsg);
+		FString DebugMsg(TEXT("FINAL SELECTED ACTOR IS: "));
+		FString DebugSub(SelectedActor->GetName());
+		DebugMsg.Append(DebugSub);
+		if (GEngine) {
+			for (int i = 0; i < 25; i++) {
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, DebugMsg);
+			}
 		}
 	}
-
+	
 	// Returns the actor that was decidedly best for Size Perception
 	return SelectedActor;
 }
@@ -238,6 +237,13 @@ void ASizePerceptionActor::ScaleOriginal() {
 		else {
 			DuplicateMeshActor->SetActorScale3D(FVector(1, 1, 1));				// If neither apply, make the actor scaled at <1,1,1>
 			SPActor->SetActorHiddenInGame(false);								// Reveals the original actor
+			DuplicateMeshActor->GetAttachedActors(DupeActorAttached);			// Makes TArray of duplicate attached actors
+			if (DupeActorAttached.Num() != 0) {
+				for (int i = 0; i < DupeActorAttached.Num(); i++) {
+					SPActorAttached[i]->SetActorHiddenInGame(false);			// Reveals the original attached actor
+					DupeActorAttached[i]->Destroy();
+				}
+			}
 			DuplicateMeshActor->Destroy();										// Destroys the duplicate
 		}
 	}
@@ -287,6 +293,7 @@ void ASizePerceptionActor::Scale(int scalSize) {
 			for (int i = 0; i < SPActorAttached.Num(); i++) {
 
 				AActor* loopyActor = SPActorAttached[i];
+				loopyActor->SetActorHiddenInGame(true); // Hides the original actor so it doesn't cause problems
 
 				UE_LOG(LogTemp, Warning, TEXT("Actor name is %s"), *loopyActor->GetName());
 
@@ -317,7 +324,10 @@ void ASizePerceptionActor::Scale(int scalSize) {
 				dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);								// Duplicate actor Mesh
 				dupeMeshBoiComp->SetMaterial(0, materialBoi);								// Duplicate actor Material
 
-				DuplicateMeshActorAttach->AttachToActor(DuplicateMeshActor, FAttachmentTransformRules::SnapToTargetIncludingScale);
+				FHitResult* RV_Hit = new FHitResult(ForceInit);
+				DuplicateMeshActorAttach->AttachToActor(DuplicateMeshActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+				DuplicateMeshActorAttach->SetActorLocation(loopyActor->GetActorLocation(), false, RV_Hit, ETeleportType::TeleportPhysics);
+
 				TArray<AActor*> TESTATTACHARRAY;
 				DuplicateMeshActor->GetAttachedActors(TESTATTACHARRAY); // Makes TArray of attached actors
 				if (TESTATTACHARRAY.Num() != 0) {
@@ -325,7 +335,7 @@ void ASizePerceptionActor::Scale(int scalSize) {
 					UE_LOG(LogTemp, Warning, TEXT("ATTACHED IS %s"), *TESTARRAY->GetName());
 				}
 				
-
+				///The stuff below is the beginning of implementing a SkeletalMesh check in case we want the Flipclock to change size
 
 				// Creates duplicate attached actor and snaps to DuplicateMeshActor
 				//AActor* DuplicateMeshAttach = GetWorld()->SpawnActorAbsolute<AActor>(SPActorAttached[i]->GetClass(), SPActorAttached[i]->GetTransform(), SpawnParams);
