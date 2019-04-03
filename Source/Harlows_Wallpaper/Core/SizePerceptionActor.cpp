@@ -71,7 +71,7 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 	switch (realtimeSecondsInt){
 	case 10:
 		if (proceed) {
-			Scale(5);
+			Scale(10);
 		}
 		break;
 	case 19:
@@ -79,7 +79,7 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 		break;
 	case 20:
 		if (proceed) {
-			Scale(0.5);
+			Scale(20);
 		}
 	break;
 	//case 30:
@@ -202,9 +202,9 @@ AActor* ASizePerceptionActor::Select()
 
 // Scales an actor back to its original size
 void ASizePerceptionActor::ScaleOriginal() {
-	if (DuplicateMeshActor != NULL) {
+	if (DuplicateMeshActor != NULL && SPActor != NULL) {
 		FVector LAScale = DuplicateMeshActor->GetActorScale();
-		if (LAScale.Size() > 1.7320508 && tempScale > 1) {				// If the current scale is higher than <1,1,1> & it was sized up...
+		if (LAScale.X > 1 && tempScale > 1) {							// If the current scale is higher than <1,1,1> & it was sized up...
 			FVector LoopActorLocation = DuplicateMeshActor->GetActorLocation();	// Gets location of actor
 			AActor* CameraAct = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager; // Gets player camera as an actor
 			FVector PlayerLocation = CameraAct->GetActorLocation();		// Gets location of player camera
@@ -219,7 +219,7 @@ void ASizePerceptionActor::ScaleOriginal() {
 				tempScale = scaleUnit;											// Sets the current scaling to the new scaling
 			}
 		}
-		else if (LAScale.Size() < 1.7120508 && tempScale < 1) {			// If the current scale is lower than <1,1,1> & it was sized down...
+		else if (LAScale.X < 1 && tempScale < 1) {						// If the current scale is lower than <1,1,1> & it was sized down...
 			FVector LoopActorLocation = DuplicateMeshActor->GetActorLocation();	// Gets location of actor
 			AActor* CameraAct = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager; // Gets player camera as an actor
 			FVector PlayerLocation = CameraAct->GetActorLocation();		// Gets location of player camera
@@ -249,7 +249,7 @@ void ASizePerceptionActor::ScaleOriginal() {
 	}
 }
 
-// Scales an actor based on scaleSize and distance
+// Duplicates an actor and then scales it based on scaleSize and distance
 void ASizePerceptionActor::Scale(int scalSize) {
 	UE_LOG(LogTemp, Warning, TEXT("ACTIVATED ONLY ONCE"));
 	SPActor = Select(); // The original instance of the actor that will be sized
@@ -270,7 +270,7 @@ void ASizePerceptionActor::Scale(int scalSize) {
 		TArray<UStaticMeshComponent*> Components;						// Original actor USMC: Declares array of USMC
 		SPActor->GetComponents<UStaticMeshComponent>(Components);		// Original actor USMC: Sets array of USMC
 		UStaticMeshComponent* meshBoiComp = Components[0];				// Original actor USMC: Initializes variable to USMC in array
-		UStaticMesh* meshBoiMesh = meshBoiComp->GetStaticMesh();		// Original actor Mesh: Gets Static Mesh of USMC
+		UStaticMesh* meshBoiMesh = meshBoiComp->GetStaticMesh();		// Original actor Static Mesh: Gets Static Mesh of USMC
 		UMaterialInterface* materialBoi = meshBoiComp->GetMaterial(0);	// Original actor Material
 
 		// Applies information to duplicate actor
@@ -278,62 +278,60 @@ void ASizePerceptionActor::Scale(int scalSize) {
 		DuplicateMeshActor->GetComponents<UStaticMeshComponent>(DupeComponents);	// Duplicate actor USMC: Sets array of USMC
 		UStaticMeshComponent* dupeMeshBoiComp = DupeComponents[0];					// Duplicate actor USMC: Initializes variable to USMC in array
 
+		// Duplicate actor ignore collisions
 		if (UPrimitiveComponent* PrimitiveComponent = DuplicateMeshActor->FindComponentByClass<UPrimitiveComponent>())
 		{
-			PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);	// Duplicate actor ignore collisions
+			PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 		}
 
-		dupeMeshBoiComp->SetSimulatePhysics(false);									// Duplicate actor disable physics
-		dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);					// Duplicate actor allows Mesh
-		dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);								// Duplicate actor Mesh
+		//dupeMeshBoiComp->SetSimulatePhysics(false);									// Duplicate actor disable physics (MIGHT ACTUALLY NOT BE NEEDED)
+		dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);					// Duplicate actor allows Static Mesh
+		dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);								// Duplicate actor Static Mesh
 		dupeMeshBoiComp->SetMaterial(0, materialBoi);								// Duplicate actor Material
+		DuplicateMeshActor->bGenerateOverlapEventsDuringLevelStreaming = true;
 
 		// If SPActor has attached actors...
 		if (SPActorAttached.Num() != 0) {
 			for (int i = 0; i < SPActorAttached.Num(); i++) {
 
-				AActor* loopyActor = SPActorAttached[i];
-				loopyActor->SetActorHiddenInGame(true); // Hides the original actor so it doesn't cause problems
+				AActor* loopyActor = SPActorAttached[i];	// Refers to the original attached actor in the corresponding index of the array
+				loopyActor->SetActorHiddenInGame(true);		// Hides the original attached actor so it doesn't cause problems
 
-				UE_LOG(LogTemp, Warning, TEXT("Actor name is %s"), *loopyActor->GetName());
+				UE_LOG(LogTemp, Warning, TEXT("Actor name is %s"), *loopyActor->GetName()); /// Name of attached actor being changed
 
-				// Creates duplicate actor that will be sized
+				// Creates duplicate attached actor that will be sized
 				FActorSpawnParameters SpawnParams;
 				AActor* DuplicateMeshActorAttach = GetWorld()->SpawnActorAbsolute<AActor>(loopyActor->GetClass(), loopyActor->GetTransform(), SpawnParams);
 				
 
-				// Gets information about the original actor's mesh
+				// Gets information about the original attached actor's mesh
 				TArray<UStaticMeshComponent*> Components;						// Original actor USMC: Declares array of USMC
-				loopyActor->GetComponents<UStaticMeshComponent>(Components);		// Original actor USMC: Sets array of USMC
+				loopyActor->GetComponents<UStaticMeshComponent>(Components);	// Original actor USMC: Sets array of USMC
 				UStaticMeshComponent* meshBoiComp = Components[0];				// Original actor USMC: Initializes variable to USMC in array
 				UStaticMesh* meshBoiMesh = meshBoiComp->GetStaticMesh();		// Original actor Mesh: Gets Static Mesh of USMC
 				UMaterialInterface* materialBoi = meshBoiComp->GetMaterial(0);	// Original actor Material
 
 				// Applies information to duplicate actor
-				TArray<UStaticMeshComponent*> DupeComponents;								// Duplicate actor USMC: Declares array of USMC
+				TArray<UStaticMeshComponent*> DupeComponents;									// Duplicate actor USMC: Declares array of USMC
 				DuplicateMeshActorAttach->GetComponents<UStaticMeshComponent>(DupeComponents);	// Duplicate actor USMC: Sets array of USMC
-				UStaticMeshComponent* dupeMeshBoiComp = DupeComponents[0];					// Duplicate actor USMC: Initializes variable to USMC in array
+				UStaticMeshComponent* dupeMeshBoiComp = DupeComponents[0];						// Duplicate actor USMC: Initializes variable to USMC in array
 
+				// Duplicate attached actor ignore collisions
 				if (UPrimitiveComponent* PrimitiveComponent = DuplicateMeshActorAttach->FindComponentByClass<UPrimitiveComponent>())
 				{
-					PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);	// Duplicate actor ignore collisions
+					PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 				}
 
-				dupeMeshBoiComp->SetSimulatePhysics(false);									// Duplicate actor disable physics
-				dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);					// Duplicate actor allows Mesh
-				dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);								// Duplicate actor Mesh
-				dupeMeshBoiComp->SetMaterial(0, materialBoi);								// Duplicate actor Material
+				//dupeMeshBoiComp->SetSimulatePhysics(false);								// Duplicate actor disable physics (MIGHT ACTUALLY NOT BE NEEDED)
+				dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);				// Duplicate actor allows Static Mesh
+				dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);							// Duplicate actor Static Mesh
+				dupeMeshBoiComp->SetMaterial(0, materialBoi);							// Duplicate actor Material
 
+				// Attaches duplicate attached actor to the duplicate main actor and sets it location to the original attached actor
 				FHitResult* RV_Hit = new FHitResult(ForceInit);
 				DuplicateMeshActorAttach->AttachToActor(DuplicateMeshActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 				DuplicateMeshActorAttach->SetActorLocation(loopyActor->GetActorLocation(), false, RV_Hit, ETeleportType::TeleportPhysics);
-
-				TArray<AActor*> TESTATTACHARRAY;
-				DuplicateMeshActor->GetAttachedActors(TESTATTACHARRAY); // Makes TArray of attached actors
-				if (TESTATTACHARRAY.Num() != 0) {
-					AActor* TESTARRAY = TESTATTACHARRAY[i];
-					UE_LOG(LogTemp, Warning, TEXT("ATTACHED IS %s"), *TESTARRAY->GetName());
-				}
+				DuplicateMeshActorAttach->bGenerateOverlapEventsDuringLevelStreaming = true;
 				
 				///The stuff below is the beginning of implementing a SkeletalMesh check in case we want the Flipclock to change size
 
@@ -383,7 +381,7 @@ void ASizePerceptionActor::Scale(int scalSize) {
 				
 				
 				//dupeMeshBoiComp->SetSimulatePhysics(false);									// Duplicate attached actor disable physics
-				//dupeMeshBoiComp->SetMaterial(0, materialBoi);								// Duplicate attached actor Material
+				//dupeMeshBoiComp->SetMaterial(0, materialBoi);									// Duplicate attached actor Material
 			}
 		}
 
@@ -395,6 +393,11 @@ void ASizePerceptionActor::Scale(int scalSize) {
 		float scaleUnit = 1 + (((scaleSize - 1) / 190) * (distance - 70));	// Calculates new values that scale will size to
 		FVector NewScale = FVector(scaleUnit, scaleUnit, scaleUnit);		// Creates new scale vector
 		DuplicateMeshActor->SetActorScale3D(NewScale);						// Sets duplicate actor to scale vector
+		TArray<AActor*> OverlapActors;
+		DuplicateMeshActor->GetOverlappingActors(OverlapActors);
+		if (OverlapActors.Num() != 0) {
+			UE_LOG(LogTemp, Error, TEXT("You got yourself a big boi"));
+		}
 
 		proceed = false;	// Makes it so Select() cannot be ran until no longer a trigger time
 	}
