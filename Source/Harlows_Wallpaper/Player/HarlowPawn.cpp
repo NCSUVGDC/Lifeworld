@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "HarlowPawn.h"
+#include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
 
 
 // Sets default values
@@ -31,4 +32,3 @@ void AHarlowPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
-
