@@ -29,6 +29,7 @@ void ASizePerceptionActor::BeginPlay()
 	// Add actors to symptom array
 	for (AActor* SymptomActor : FoundActors)
 	{
+
 		// Check for active symptoms
 		if (SymptomActor->Tags.Num() != 0)
 		{
@@ -288,7 +289,9 @@ void ASizePerceptionActor::Scale(int scalSize) {
 		dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);					// Duplicate actor allows Static Mesh
 		dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);								// Duplicate actor Static Mesh
 		dupeMeshBoiComp->SetMaterial(0, materialBoi);								// Duplicate actor Material
-		DuplicateMeshActor->bGenerateOverlapEventsDuringLevelStreaming = true;
+
+		UPrimitiveComponent* ActorRootComponent = Cast<UPrimitiveComponent>(DuplicateMeshActor->GetRootComponent());
+		ActorRootComponent->SetGenerateOverlapEvents(true);
 
 		// If SPActor has attached actors...
 		if (SPActorAttached.Num() != 0) {
@@ -303,7 +306,6 @@ void ASizePerceptionActor::Scale(int scalSize) {
 				FActorSpawnParameters SpawnParams;
 				AActor* DuplicateMeshActorAttach = GetWorld()->SpawnActorAbsolute<AActor>(loopyActor->GetClass(), loopyActor->GetTransform(), SpawnParams);
 				
-
 				// Gets information about the original attached actor's mesh
 				TArray<UStaticMeshComponent*> Components;						// Original actor USMC: Declares array of USMC
 				loopyActor->GetComponents<UStaticMeshComponent>(Components);	// Original actor USMC: Sets array of USMC
@@ -331,7 +333,6 @@ void ASizePerceptionActor::Scale(int scalSize) {
 				FHitResult* RV_Hit = new FHitResult(ForceInit);
 				DuplicateMeshActorAttach->AttachToActor(DuplicateMeshActor, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 				DuplicateMeshActorAttach->SetActorLocation(loopyActor->GetActorLocation(), false, RV_Hit, ETeleportType::TeleportPhysics);
-				DuplicateMeshActorAttach->bGenerateOverlapEventsDuringLevelStreaming = true;
 				
 				///The stuff below is the beginning of implementing a SkeletalMesh check in case we want the Flipclock to change size
 
@@ -393,8 +394,8 @@ void ASizePerceptionActor::Scale(int scalSize) {
 		float scaleUnit = 1 + (((scaleSize - 1) / 190) * (distance - 70));	// Calculates new values that scale will size to
 		FVector NewScale = FVector(scaleUnit, scaleUnit, scaleUnit);		// Creates new scale vector
 		DuplicateMeshActor->SetActorScale3D(NewScale);						// Sets duplicate actor to scale vector
-		TArray<AActor*> OverlapActors;
-		DuplicateMeshActor->GetOverlappingActors(OverlapActors);
+		TArray<UPrimitiveComponent*> OverlapActors;
+		DuplicateMeshActor->GetOverlappingComponents(OverlapActors);
 		if (OverlapActors.Num() != 0) {
 			UE_LOG(LogTemp, Error, TEXT("You got yourself a big boi"));
 		}
