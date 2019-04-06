@@ -50,7 +50,8 @@ void ASizePerceptionActor::BeginPlay()
 	}
 
 	// Sets proceed to a value that wouldn't cause problems
-	proceed = false;
+	proceed = true;
+	scaleTime = -16;
 
 	// Initializes DotProducts to an array of length of SizePerceptionActors
 	DotProducts.SetNum(SizePerceptionActors.Num());
@@ -67,28 +68,38 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 	// Gets the number of seconds since game started as an int
 	float realtimeSeconds = UGameplayStatics::GetRealTimeSeconds(GetWorld());
 	int32 realtimeSecondsInt = (int32)realtimeSeconds;
-	
-	// Checks if game time is during one of the trigger times for SizePerception
-	switch (realtimeSecondsInt){
-	case 10:
-		if (proceed) {
-			Scale(10);
+
+	float scaleValue = FMath::RandRange((float)0.5, (float)3);
+
+	if (proceed && realtimeSecondsInt > 2) {
+		Scale(scaleValue);
+		scaleTime = (float)realtimeSecondsInt;
+		//UE_LOG(LogTemp, Warning, TEXT("scaleTime is %f"), scaleTime);
+		UE_LOG(LogTemp, Warning, TEXT("scaleValue is %f"), scaleValue);
+	}
+
+	if (realtimeSecondsInt > (scaleTime + 15) && notLooking) {
+		UE_LOG(LogTemp, Warning, TEXT("HEY WE DID IT"));
+		tempScale = 1;
+		proceed = true;
+	}
+
+	if (DuplicateMeshActor != NULL && SPActor != NULL) {
+		AActor* LoopActor = DuplicateMeshActor;							// Sets LoopActor to actor being scaled
+		FVector LoopActorLocation = LoopActor->GetActorLocation();		// Gets location of the LoopActor
+		AActor* CameraAct = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager; // Gets player camera as actor
+		FVector PlayerLocation = CameraAct->GetActorLocation();			// Gets player camera location
+		FVector DistanceVector = LoopActorLocation - PlayerLocation;	// Gets distance vector between LoopActor and player camera
+		DistanceVector = DistanceVector / DistanceVector.Size();		// Normalizes the distance vector (magnitude of 1)
+		FVector CameraVector = LifeWorldCamera->GetForwardVector();		// Gets forward vector of the camera
+		CameraVector = CameraVector / CameraVector.Size();				// Normalizes the forward vector of the camera (magnitude of 1)
+		float dotProd = FVector::DotProduct(DistanceVector, CameraVector);	// Gets dot product of normalized distance vector and normalized camera vector
+		if (dotProd < 0) {
+			notLooking = true;
 		}
-		break;
-	case 19:
-		tempScale = 1;	// Resets tempScale so things go back to normal
-		break;
-	case 20:
-		if (proceed) {
-			Scale(20);
+		else {
+			notLooking = false;
 		}
-	break;
-	//case 30:
-	//	tempScale = 1;
-	//	break;
-	default:
-		proceed = true;	// Reset proceed whenever it's not a trigger time
-		break;
 	}
 }
 
@@ -212,7 +223,7 @@ void ASizePerceptionActor::ScaleOriginal() {
 			FVector DistanceVect = LoopActorLocation - PlayerLocation;	// Gets distance vector between LoopActor and player camera
 			float distance = DistanceVect.Size();						// Gets distance of distance vector
 
-			float scaleUnit = 1 + (((scaleSize - 1) / 190) * (distance - 70));	// Calculates what the scaling would become at current distance
+			float scaleUnit = 1 + (((scaleSize - 1) / (260 - normalDistance)) * (distance - normalDistance));	// Calculates what the scaling would become at current distance
 
 			if (scaleUnit < tempScale) {										// If the scaling would be lower than the current scaling...
 				FVector NewScale = FVector(scaleUnit, scaleUnit, scaleUnit);	// Create a scale vector of new scaling
@@ -227,7 +238,7 @@ void ASizePerceptionActor::ScaleOriginal() {
 			FVector DistanceVect = LoopActorLocation - PlayerLocation;	// Gets distance vector between LoopActor and player camera
 			float distance = DistanceVect.Size();						// Gets distance of distance vector
 
-			float scaleUnit = 1 + (((scaleSize - 1) / 190) * (distance - 70));	// Calculates what the scaling would become at current distance
+			float scaleUnit = 1 + (((scaleSize - 1) / (260 - normalDistance)) * (distance - normalDistance));	// Calculates what the scaling would become at current distance
 
 			if (scaleUnit > tempScale) {										// If the scaling would be higher than the current scaling...
 				FVector NewScale = FVector(scaleUnit, scaleUnit, scaleUnit);	// Create a scale vector of new scaling
@@ -242,16 +253,17 @@ void ASizePerceptionActor::ScaleOriginal() {
 			if (DupeActorAttached.Num() != 0) {
 				for (int i = 0; i < DupeActorAttached.Num(); i++) {
 					SPActorAttached[i]->SetActorHiddenInGame(false);			// Reveals the original attached actor
-					DupeActorAttached[i]->Destroy();
+					DupeActorAttached[i]->Destroy();							// Destroys the attached duplicate
 				}
 			}
 			DuplicateMeshActor->Destroy();										// Destroys the duplicate
+			notLooking = true;
 		}
 	}
 }
 
 // Duplicates an actor and then scales it based on scaleSize and distance
-void ASizePerceptionActor::Scale(int scalSize) {
+void ASizePerceptionActor::Scale(float scalSize) {
 	UE_LOG(LogTemp, Warning, TEXT("ACTIVATED ONLY ONCE"));
 	SPActor = Select(); // The original instance of the actor that will be sized
 
@@ -285,7 +297,6 @@ void ASizePerceptionActor::Scale(int scalSize) {
 			PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 		}
 
-		//dupeMeshBoiComp->SetSimulatePhysics(false);									// Duplicate actor disable physics (MIGHT ACTUALLY NOT BE NEEDED)
 		dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);					// Duplicate actor allows Static Mesh
 		dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);								// Duplicate actor Static Mesh
 		dupeMeshBoiComp->SetMaterial(0, materialBoi);								// Duplicate actor Material
@@ -324,7 +335,6 @@ void ASizePerceptionActor::Scale(int scalSize) {
 					PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 				}
 
-				//dupeMeshBoiComp->SetSimulatePhysics(false);								// Duplicate actor disable physics (MIGHT ACTUALLY NOT BE NEEDED)
 				dupeMeshBoiComp->SetMobility(EComponentMobility::Movable);				// Duplicate actor allows Static Mesh
 				dupeMeshBoiComp->SetStaticMesh(meshBoiMesh);							// Duplicate actor Static Mesh
 				dupeMeshBoiComp->SetMaterial(0, materialBoi);							// Duplicate actor Material
@@ -391,13 +401,18 @@ void ASizePerceptionActor::Scale(int scalSize) {
 		UE_LOG(LogTemp, Warning, TEXT("Distance to Scaled Item: %f"), distance);
 
 		// Scaling based on scaleSize and distance
-		float scaleUnit = 1 + (((scaleSize - 1) / 190) * (distance - 70));	// Calculates new values that scale will size to
+		float scaleUnit = 1 + (((scaleSize - 1) / (260 - normalDistance)) * (distance - normalDistance));	// Calculates new values that scale will size to
 		FVector NewScale = FVector(scaleUnit, scaleUnit, scaleUnit);		// Creates new scale vector
 		DuplicateMeshActor->SetActorScale3D(NewScale);						// Sets duplicate actor to scale vector
 		TArray<UPrimitiveComponent*> OverlapActors;
 		DuplicateMeshActor->GetOverlappingComponents(OverlapActors);
 		if (OverlapActors.Num() != 0) {
 			UE_LOG(LogTemp, Error, TEXT("You got yourself a big boi"));
+			scaleSize = (9 - scaleSize) / 9;
+			tempScale = scaleSize;
+			scaleUnit = 1 + (((scaleSize - 1) / (260 - normalDistance)) * (distance - normalDistance));
+			NewScale = FVector(scaleUnit, scaleUnit, scaleUnit);
+			DuplicateMeshActor->SetActorScale3D(NewScale);
 		}
 
 		proceed = false;	// Makes it so Select() cannot be ran until no longer a trigger time

@@ -26,7 +26,7 @@ public:
 	void ScaleOriginal();
 
 	// Scales an actor based on scaleSize and distance
-	void Scale(int scaleSize);
+	void Scale(float scaleSize);
 
 protected:
 	// Called when the game starts or when spawned
@@ -53,6 +53,10 @@ private:
 	UPROPERTY()
 		USceneComponent* LifeWorldCamera;
 
+	// Scale distance to become normal
+	UPROPERTY()
+		float normalDistance = 80;
+
 	// Distance of SelectedActor
 	UPROPERTY()
 		float SADistance;
@@ -68,6 +72,14 @@ private:
 	// Recent scale compared against in resizing to prevent regression
 	UPROPERTY()
 		float tempScale;
+
+	// Time the previous scale occurred at
+	UPROPERTY()
+		float scaleTime;
+
+	// States whether or not the player is looking at a size-percepted object
+	UPROPERTY()
+		bool notLooking;
 
 	// Duplicate actor being manipulated by Size Perception
 	UPROPERTY()
