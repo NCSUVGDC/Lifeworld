@@ -26,13 +26,13 @@ TMap<FName, FSymptomDetails> USymptomUtilitiesManager::InitSymptomDetails()
 	SymptomContainers.Add(FName(TEXT("Symptoms.Voices")), FSymptomDetails(Voices, FTimespan(0, 0, 5)));
 
 	// double-take
-	SymptomContainers.Add(FName(TEXT("Symptoms.DoubleTake")), FSymptomDetails(DoubleTake, FTimespan(0, 0, 5)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.DoubleTake")), FSymptomDetails(DoubleTake, FTimespan(0, 0, 10)));
 
 	// Warping Walls
 	SymptomContainers.Add(FName(TEXT("Symptoms.WarpingWalls")), FSymptomDetails(WarpingWalls, FTimespan(0, 0, 5)));
 
 	// Phantom
-	SymptomContainers.Add(FName(TEXT("Symptoms.Phantom")), FSymptomDetails(Phantom, FTimespan(0, 0, 5)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.Phantom")), FSymptomDetails(Phantom, FTimespan(0, 0, 10)));
 
 	// BackIsTurned
 	SymptomContainers.Add(FName(TEXT("Symptoms.BackIsTurned")), FSymptomDetails(BackIsTurned, FTimespan(0, 0, 5)));

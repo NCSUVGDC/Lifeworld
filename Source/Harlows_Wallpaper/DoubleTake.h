@@ -4,22 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "PossessedObject.generated.h"
+#include "DoubleTake.generated.h"
 
 UCLASS()
-class HARLOWS_WALLPAPER_API APossessedObject : public AActor
+class HARLOWS_WALLPAPER_API ADoubleTake : public AActor
 {
 	GENERATED_BODY()
-
-public:
+	
+public:	
 	// Sets default values for this actor's properties
-	APossessedObject();
+	ADoubleTake();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:
+public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -29,13 +29,18 @@ public:
 	//Set refence to the player for easy access when calculating dot products
 	void setPlayer(AActor * ply);
 
-	//Do a spook
-	void DoASpoopyThing();
+	//Selects an object to possess
+	void SelectObject();
 
-	//Update PossessedObject per call of SymptomManager
+	//Update called once per frame by SymptomManager
 	void Update();
 
 private:
+	
+	// Array of actors that can be possess by double take function
+//	UPROPERTY()
+	TArray<AActor*> DoubleTakeActors;
+	
 	//Reference to object
 	AActor * object;
 	//Refence to player
@@ -57,4 +62,11 @@ private:
 	// and the phantom was never spotted, we don't want the phantom just sitting there without anyway to update.
 	//As such, phantom stores its own time, equal to the max duration of the symptom, so that it can automatically retire itself if needed
 	float symptomTime = 0.0f;
+
+	//Tells if the symptom is currently Running. 
+	//Switches to true when an object has been chosen to move under this Symptom
+	//Switches to false when the object moving returns to resting position
+	bool isRunning = false;
+
+	int tickCount = 0;
 };

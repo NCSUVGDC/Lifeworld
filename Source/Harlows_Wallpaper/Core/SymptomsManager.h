@@ -164,13 +164,4 @@ public:
 	// Instead increment a counter each tick and log if it says it's been long enough since the last tick
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Debug")
 		float DebugSymptomTickFrequency = 1.0f;
-
-private:
-
-	// Array of actors that can be possess by double take function
-	UPROPERTY()
-		TArray<AActor*> DoubleTakeActors;
-
-	UPROPERTY()
-		APhantom* phantom;
 };
