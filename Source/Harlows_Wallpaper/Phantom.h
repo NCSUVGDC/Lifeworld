@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Core/SymptomsManager.h"
 #include "Phantom.generated.h"
 
 UCLASS()
@@ -19,8 +20,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-
-
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -33,6 +32,9 @@ public:
 
 	void EndSymptom();
 
+	UPROPERTY(EditAnywhere)
+		class ASymptomsManager* SymptomManager;
+
 
 private:
 
@@ -40,7 +42,7 @@ private:
 
 	void SpawnPhantom();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pickup", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Phantom", meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* specMesh;
 
 	//Reference to the player, allows for quick access for phantom to check if it has been spotted
@@ -65,5 +67,7 @@ private:
 	bool isRunning = false;
 
 	FTimerHandle endSymptomTimer;
+
+	float timeToSpawnAt = 20.0f;
 
 };

@@ -2,6 +2,7 @@
 
 #include "Phantom.h"
 #include "DrawDebugHelpers.h"
+#include "Core/SymptomsManager.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 
@@ -18,7 +19,10 @@ void APhantom::BeginPlay()
 {
 	Super::BeginPlay();
 	SetActorHiddenInGame(true);
-	SetActorTickEnabled(false);
+	//SetActorTickEnabled(false);
+	isSpotted = false;
+	isRunning = false;
+
 }
 
 // Called every frame
@@ -26,22 +30,39 @@ void APhantom::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//End symptom
-	tickCount++;
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, FString::Printf(TEXT("%f"), DeltaTime));
 
-//	FString tickCount = " " + tickCount;
-//	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, FString::Printf(TEXT("%d"), tickCount));
 
-	if (tickCount > 630)
+	if (DeltaTime > timeToSpawnAt)
 	{
-		isSpotted = false;
-		isRunning = false;
-		SetActorHiddenInGame(true);
-		SetActorTickEnabled(false);
-		tickCount = 0;
+    	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		bool success = SymptomManager->AddSymptomToActor(this, "Symptoms.Phantom");
+		if (success)
+		{
+
+		//	SpawnPhantom();
+			timeToSpawnAt += 20.0f;
+		}
+
 	}
 
-
+	if ( isRunning )
+	{
+		tickCount++;
+		if (tickCount > 630)
+		{
+			isSpotted = false;
+			isRunning = false;
+			SetActorHiddenInGame(true);
+			tickCount = 0;
+		}
+	}
 }
 
 //Set refence to player and make the phantom visible
@@ -56,40 +77,30 @@ void APhantom::SetPlayer(AActor * actor)
 //And disappearing if needed to
 void APhantom::Update()
 {
-	// just print that we're executing successfully, for now
-
-
-	//This is used to see if upon calling Update(), the symptom manager is doing it for the first time
-	//The time check will tell if it has been awhile since the update() was last called, indicating 
-	//time to select a new spawn position
-	if (!isRunning)
+	if (!isRunning && !isSpotted )
 	{
 		SpawnPhantom();
 	}
+	else if (!isSpotted)
+	{
+		//Because of the nature of the VR headset, we must calculate two different dot products to get the best estimation of the player's view
+		//to the phantom. This statement checks if either is exceeding the value that would indicate the phantom is well within view of the player
+		if (player->GetDotProductTo(this) >= 0.65 || player->GetHorizontalDotProductTo(this) >= 0.6)
+		{
+			//Phantom has been spotted, start the clock until it should automatically disappear
+			isSpotted = true;
+			timeSpotted = UGameplayStatics::GetRealTimeSeconds(GetWorld());
+		}
+	}
+	//otherwise...
 	else
 	{
-		//if the phantom has not been spotted yet...
-		if (!isSpotted)
+		//Now check the dot products using values (.75) that would indicate the player is looking directly at the phantom.
+		//OR if it has been 3 seconds since first sighting, make phantom disappear
+		if (player->GetHorizontalDotProductTo(this) > 0.75 || player->GetDotProductTo(this) > 0.75 || UGameplayStatics::GetRealTimeSeconds(GetWorld()) - timeSpotted > 3.0f)
 		{
-			//Because of the nature of the VR headset, we must calculate two different dot products to get the best estimation of the player's view
-			//to the phantom. This statement checks if either is exceeding the value that would indicate the phantom is well within view of the player
-			if (player->GetDotProductTo(this) >= 0.65 || player->GetHorizontalDotProductTo(this) >= 0.6)
-			{
-				//Phantom has been spotted, start the clock until it should automatically disappear
-				isSpotted = true;
-				timeSpotted = UGameplayStatics::GetRealTimeSeconds(GetWorld());
-			}
-		}
-		//otherwise...
-		else
-		{
-			//Now check the dot products using values (.75) that would indicate the player is looking directly at the phantom.
-			//OR if it has been 3 seconds since first sighting, make phantom disappear
-			if (player->GetHorizontalDotProductTo(this) > 0.75 || player->GetDotProductTo(this) > 0.75 || UGameplayStatics::GetRealTimeSeconds(GetWorld()) - timeSpotted > 3.0f)
-			{
-				isSpotted = false;
-				SetActorHiddenInGame(true);
-			}
+			isSpotted = false;
+			SetActorHiddenInGame(true);
 		}
 	}
 }
@@ -97,13 +108,6 @@ void APhantom::Update()
 
 void APhantom::SpawnPhantom()
 {
-/*	// just print that we're executing successfully, for now
-	FString DebugMsg = FString::Printf(TEXT("Spawning Phantom"));
-	GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Orange, DebugMsg);
-	GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Orange, DebugMsg);
-	GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Orange, DebugMsg);
-	GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Orange, DebugMsg);
-	GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Orange, DebugMsg);*/
 	//Generate FHitResult and CollisionParams that will be needed for the LineTrace
 	FHitResult OutHit;
 	FCollisionQueryParams CollisionParams;
@@ -139,7 +143,6 @@ void APhantom::SpawnPhantom()
 		SetActorRotation(facePlayer);
 		isRunning = true;
 		SetActorHiddenInGame(false);
-		SetActorTickEnabled(true);
 		return;
 	}
 
@@ -166,7 +169,6 @@ void APhantom::SpawnPhantom()
 		facePlayer.Yaw -= 90;
 		SetActorRotation(facePlayer);
 		SetActorHiddenInGame(false);
-		SetActorTickEnabled(true);
 		isRunning = true;
 	}
 	
