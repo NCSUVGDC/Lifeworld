@@ -30,6 +30,10 @@ public:
 	// Get current hour
 	int32 CurrentHour();
 
+	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
+	// Get current second
+	int32 CurrentSecond();
+
 private:
 	// amount of in-game time passed
 	FTimespan CurrentTime;

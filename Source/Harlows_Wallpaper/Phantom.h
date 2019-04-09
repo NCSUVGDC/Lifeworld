@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Core/SymptomsManager.h"
+#include "Core/TimeSystem.h"
 #include "Phantom.generated.h"
 
 UCLASS()
@@ -35,12 +36,17 @@ public:
 	UPROPERTY(EditAnywhere)
 		class ASymptomsManager* SymptomManager;
 
+	UPROPERTY(EditAnywhere)
+		class ATimeSystem* TimeSystem;
+
 
 private:
 
 	int tickCount = 0;
 
-	void SpawnPhantom();
+	bool FindPhantomSpawn();
+
+	void SpawnPhantom(FVector spawnLoc);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Phantom", meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* specMesh;
@@ -54,20 +60,14 @@ private:
 	//Stores the time that the phantom was spotted by the player.
 	//Allows Phantom to go away eventually, even if player never actually looks directly at it.
 	//Prevents player from constantly watching it from the corner of their eye
-	float timeSpotted = 0.0f;
-
-	//Stores the amount of time the phantom is supposed to run. In the event that the SymptomManager stops updating this symptom,
-	// and the phantom was never spotted, we don't want the phantom just sitting there without anyway to update.
-	//As such, phantom stores its own time, equal to the max duration of the symptom, so that it can automatically retire itself if needed
-	float symptomTime = 0.0f;
+	int timeSpotted = 0;
 
 	//Tells if the symptom is currently Running. 
 	//Switches to true when phantom becomes visible
 	//Switches to false when the phantom disappears
 	bool isRunning = false;
 
-	FTimerHandle endSymptomTimer;
-
-	float timeToSpawnAt = 20.0f;
+	//Time (in seconds) in game time when the phantom should spawn
+	float timeToSpawnAt = 5.0f;
 
 };
