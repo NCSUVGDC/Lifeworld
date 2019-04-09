@@ -18,63 +18,70 @@ APhantom::APhantom()
 void APhantom::BeginPlay()
 {
 	Super::BeginPlay();
-
-	//Make sure phantom can't be seen 
 	SetActorHiddenInGame(true);
-
-	//Set phantom's reference to player
-	SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+	//SetActorTickEnabled(false);
+	isSpotted = false;
+	isRunning = false;
 
 }
-
-//Set refence to player
-void APhantom::SetPlayer(AActor * actor)
-{
-	player = actor;
-}
-
 
 // Called every frame
 void APhantom::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//If enough time has passed since "Phantom" was last run, tell SymptomManager to run it again
-	if ( TimeSystem->CurrentSecond() > timeToSpawnAt)
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, FString::Printf(TEXT("%f"), DeltaTime));
+
+
+	if (DeltaTime > timeToSpawnAt)
 	{
     	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
-		//First find a location to spawn phantom
-		if (FindPhantomSpawn())
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		bool success = SymptomManager->AddSymptomToActor(this, "Symptoms.Phantom");
+		if (success)
 		{
-			//Once location is found, tell symptom manager to run the Phantom symptom
-			if (SymptomManager->AddSymptomToActor(this, "Symptoms.Phantom"))
-			{
-				//Phantom has a new location and has been queued in symptom manager, time to make phantom visible in world
-				isRunning = true;
-				SetActorHiddenInGame(false);
-				timeToSpawnAt = TimeSystem->CurrentSecond() + 20.0f;
-			}
+
+		//	SpawnPhantom();
+			timeToSpawnAt += 20.0f;
 		}
+
 	}
 
-	//If symptom is currently running, check if it has been running for too long, in which case cancel the symptom and make phantom disappear
 	if ( isRunning )
 	{
-		if (tickCount++ > 630)
+		tickCount++;
+		if (tickCount > 630)
 		{
-			EndSymptom();
+			isSpotted = false;
+			isRunning = false;
+			SetActorHiddenInGame(true);
 			tickCount = 0;
 		}
 	}
 }
 
+//Set refence to player and make the phantom visible
+void APhantom::SetPlayer(AActor * actor)
+{
+	player = actor;
+	symptomTime = UGameplayStatics::GetRealTimeSeconds(GetWorld());
+	SetActorHiddenInGame(false);
+}
 
 //Called from symptom manager, allows Phantom to update state by calculating location based on player
-//And disappear when needed to
+//And disappearing if needed to
 void APhantom::Update()
 {
-	//If phantom is not spotted yet, make the dot product check to see if player is looking at it
-	if (!isSpotted)
+	if (!isRunning && !isSpotted )
+	{
+		SpawnPhantom();
+	}
+	else if (!isSpotted)
 	{
 		//Because of the nature of the VR headset, we must calculate two different dot products to get the best estimation of the player's view
 		//to the phantom. This statement checks if either is exceeding the value that would indicate the phantom is well within view of the player
@@ -82,23 +89,24 @@ void APhantom::Update()
 		{
 			//Phantom has been spotted, start the clock until it should automatically disappear
 			isSpotted = true;
-			timeSpotted = TimeSystem->CurrentSecond();
+			timeSpotted = UGameplayStatics::GetRealTimeSeconds(GetWorld());
 		}
 	}
 	//otherwise...
 	else
 	{
 		//Now check the dot products using values (.75) that would indicate the player is looking directly at the phantom.
-		//if one of the dot products exceeds this number OR if it has been 3 seconds since first sighting, make phantom disappear
-		if (player->GetHorizontalDotProductTo(this) > 0.75 || player->GetDotProductTo(this) > 0.75 || TimeSystem->CurrentSecond() - timeSpotted > 3)
+		//OR if it has been 3 seconds since first sighting, make phantom disappear
+		if (player->GetHorizontalDotProductTo(this) > 0.75 || player->GetDotProductTo(this) > 0.75 || UGameplayStatics::GetRealTimeSeconds(GetWorld()) - timeSpotted > 3.0f)
 		{
-			EndSymptom();
+			isSpotted = false;
+			SetActorHiddenInGame(true);
 		}
 	}
 }
 
 
-bool APhantom::FindPhantomSpawn()
+void APhantom::SpawnPhantom()
 {
 	//Generate FHitResult and CollisionParams that will be needed for the LineTrace
 	FHitResult OutHit;
@@ -109,22 +117,33 @@ bool APhantom::FindPhantomSpawn()
 	//Set the height near the floor
 	Start.Z = 17;
 
-	//Get vector of player's right side + calculate end point of line for LineTrace
+	//Get vector of player's right side + calculate end of line for LineTrace
 	FVector RightVector = GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetTransformComponent()->GetRightVector();
 	FVector End = ((RightVector * 90.f) + Start);
 	End.Z = 17;
 
-	//Send out line trace to see if there is an object within a certain distance of the player
+
 	bool isHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, CollisionParams);
 
-	//If nothing is hit, good to spawn phantom at end of line
+	//If nothing is hit, good to spawn phantom
 	if (!isHit)
 	{
+
+		//Set phantom's reference to player
+		SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
 		//Spawn phantom at end of line from LineTrace
 		FVector ghostLoc = ((RightVector * 80.f) + Start);
 		ghostLoc.Z = 0;
-		SpawnPhantom(ghostLoc);
-		return true;
+		SetActorLocation(ghostLoc);
+		//Rotate phantom to face player
+		FRotator facePlayer = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation());
+		facePlayer.Roll = 0;
+		facePlayer.Pitch = 0;
+		facePlayer.Yaw -= 90;
+		SetActorRotation(facePlayer);
+		isRunning = true;
+		SetActorHiddenInGame(false);
+		return;
 	}
 
 	//Right side was obstructed, so try spawning on left side
@@ -137,30 +156,22 @@ bool APhantom::FindPhantomSpawn()
 	//If nothing is hit on left side, spawn phantom at end of LineTrace
 	if (!isHit)
 	{
-		//Spawn phantom at end of line from LineTrace
+		//Get reference to player and pass to phantom
+		SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+		//Get location of end of line trace, spawn phantom there
 		FVector ghostLoc = ((LeftVector * 80.f) + Start);
 		ghostLoc.Z = 0;
-		SpawnPhantom(ghostLoc);
-		return true;
+		SetActorLocation(ghostLoc);
+		//Make phantom face player
+		FRotator facePlayer = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation());
+		facePlayer.Roll = 0;
+		facePlayer.Pitch = 0;
+		facePlayer.Yaw -= 90;
+		SetActorRotation(facePlayer);
+		SetActorHiddenInGame(false);
+		isRunning = true;
 	}
-
-	return false;
 	
-}
-
-void APhantom::SpawnPhantom(FVector spawnLoc)
-{
-	//Place phantom in new location
-	SetActorLocation(spawnLoc);
-
-
-	//Rotate phantom to face player
-	FRotator facePlayer = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation());
-	facePlayer.Roll = 0;
-	facePlayer.Pitch = 0;
-	facePlayer.Yaw -= 90;
-	SetActorRotation(facePlayer);
-
 }
 
 void APhantom::EndSymptom()

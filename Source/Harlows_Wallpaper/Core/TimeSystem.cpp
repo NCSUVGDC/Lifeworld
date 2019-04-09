@@ -55,8 +55,3 @@ int32 ATimeSystem::CurrentHour()
 {
 	return CurrentTime.GetHours();
 }
-
-int32 ATimeSystem::CurrentSecond()
-{
-	return CurrentTime.GetTotalSeconds();
-}
