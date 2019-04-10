@@ -138,3 +138,11 @@ void ASymptomsManager::Flee(AActor * SymptomActor)
 	// TODO: actor flees from player's sight
 }
 
+void ASymptomsManager::FallingFloor(AActor * SymptomActor)
+{
+	ADestructibleFloor* current = (ADestructibleFloor*)SymptomActor;
+	// Value is seconds before the start of recovery
+	// Note* Timers are in seconds from start of symptom, floor falls between 4-10 seconds in
+	current->StartSymptom(14);
+}
+
