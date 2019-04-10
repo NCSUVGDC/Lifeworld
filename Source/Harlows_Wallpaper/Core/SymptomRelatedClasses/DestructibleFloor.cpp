@@ -166,7 +166,7 @@ void ADestructibleFloor::Check()
 	float F = FVector::DotProduct(Position - Loc, Forward);
 
 	//If player can't see actor
-	if (F < 0) {
+	if (F < .57) {
 		Restore();
 	}
 }
