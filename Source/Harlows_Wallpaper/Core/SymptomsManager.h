@@ -5,9 +5,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "SymptomUtilitiesManager.h"
+#include "SymptomRelatedClasses/DestructibleFloor.h"
 #include "SymptomsManager.generated.h"
 
-#define MAX_SYMPTOMS 1
+#define MAX_SYMPTOMS 2
 
 USTRUCT()
 struct FSymptom
@@ -50,7 +51,7 @@ private:
 
 	// What effect/action each symptom causes
 	// Called every tick
-	const SingleActorFunc SymptomFunctions[MAX_SYMPTOMS] = { &ASymptomsManager::Flee };
+	const SingleActorFunc SymptomFunctions[MAX_SYMPTOMS] = { &ASymptomsManager::Flee,  &ASymptomsManager::FallingFloor };
 
 	// Array of actors with active Symptoms
 	UPROPERTY()
@@ -66,6 +67,10 @@ private:
 	// Flee from player
 	UFUNCTION()
 	void Flee(AActor* SymptomActor);
+
+	//Floor falls to ruin
+	UFUNCTION()
+	void FallingFloor(AActor* SymptomActor);
 
 	// See the note for the `DebugSymptomTickFrequency` property
 	// We keep `DebugSymptomCanTickThisFrame` as a class-scoped variable so other methods (namely the
