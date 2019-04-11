@@ -138,7 +138,7 @@ void ASymptomsManager::ImposeSizePerception(AActor * SymptomActor)
 	// TODO: actor's size changes
 }
 
-void ASymptomsManager::FallingFloor(AActor * SymptomActor)
+void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor)
 {
 	ADestructibleFloor* current = (ADestructibleFloor*)SymptomActor;
 	// Value is seconds before the start of recovery
@@ -158,6 +158,3 @@ void ASymptomsManager::ImposeBackIsTurned(AActor * SymptomActor) {}
 void ASymptomsManager::ImposeLensFlaring(AActor * SymptomActor) {}
 
 void ASymptomsManager::ImposeBreatheIn(AActor * SymptomActor) {}
-
-void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor) {}
-
