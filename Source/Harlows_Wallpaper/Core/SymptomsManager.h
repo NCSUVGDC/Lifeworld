@@ -7,6 +7,7 @@
 #include "PossessedObject.h"
 #include "Phantom.h"
 #include "SymptomUtilitiesManager.h"
+#include "SymptomRelatedClasses/DestructibleFloor.h"
 #include "SymptomsManager.generated.h"
 
 #define MAX_SYMPTOMS 9
