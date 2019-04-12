@@ -134,7 +134,7 @@ void ADoubleTake::Update()
 			ddY = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).Y);
 		}
 		//otherwise, if the object hasn't moved too far away yet, move a lil bit
-		else if (iterationCount != 100)
+		else if (iterationCount != 40)
 		{
 			object->AddActorWorldOffset(FVector(0, 0.2, 0));
 			iterationCount++;
@@ -165,6 +165,7 @@ void ADoubleTake::Update()
 
 void ADoubleTake::EndSymptom()
 {
+	iterationCount = 0;
 	isSpotted = false;
 	isRunning = false;
 	object->SetActorLocation(startLoc);

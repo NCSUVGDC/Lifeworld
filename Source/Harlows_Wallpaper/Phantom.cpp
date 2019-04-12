@@ -39,10 +39,12 @@ void APhantom::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	//GEngine->AddOnScreenDebugMessage(-1, 7.0f, FColor::Red, FString::FromInt(TimeSystem->CurrentSecond()) );
+
 	//If enough time has passed since "Phantom" was last run, tell SymptomManager to run it again
 	if (TimeSystem->CurrentSecond() > timeToSpawnAt)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Turquoise, TEXT("Spawn new phantom"));
+		//GEngine->AddOnScreenDebugMessage(-1, 7.0f, FColor::Red, TEXT("Spawn new phantom"));
 		//First find a location to spawn phantom
 		if (FindPhantomSpawn())
 		{
@@ -73,26 +75,29 @@ void APhantom::Tick(float DeltaTime)
 //And disappear when needed to
 void APhantom::Update()
 {
-	//If phantom is not spotted yet, make the dot product check to see if player is looking at it
-	if (!isSpotted)
+	if (isRunning)
 	{
-		//Because of the nature of the VR headset, we must calculate two different dot products to get the best estimation of the player's view
-		//to the phantom. This statement checks if either is exceeding the value that would indicate the phantom is well within view of the player
-		if (player->GetDotProductTo(this) >= 0.65 || player->GetHorizontalDotProductTo(this) >= 0.6)
+		//If phantom is not spotted yet, make the dot product check to see if player is looking at it
+		if (!isSpotted)
 		{
-			//Phantom has been spotted, start the clock until it should automatically disappear
-			isSpotted = true;
-			timeSpotted = TimeSystem->CurrentSecond();
+			//Because of the nature of the VR headset, we must calculate two different dot products to get the best estimation of the player's view
+			//to the phantom. This statement checks if either is exceeding the value that would indicate the phantom is well within view of the player
+			if (player->GetDotProductTo(this) >= 0.65 || player->GetHorizontalDotProductTo(this) >= 0.6)
+			{
+				//Phantom has been spotted, start the clock until it should automatically disappear
+				isSpotted = true;
+				timeSpotted = TimeSystem->CurrentSecond();
+			}
 		}
-	}
-	//otherwise...
-	else
-	{
-		//Now check the dot products using values (.75) that would indicate the player is looking directly at the phantom.
-		//if one of the dot products exceeds this number OR if it has been 3 seconds since first sighting, make phantom disappear
-		if (player->GetHorizontalDotProductTo(this) > 0.75 || player->GetDotProductTo(this) > 0.75 || TimeSystem->CurrentSecond() - timeSpotted > 3)
+		//otherwise...
+		else
 		{
-			EndSymptom();
+			//Now check the dot products using values (.75) that would indicate the player is looking directly at the phantom.
+			//if one of the dot products exceeds this number OR if it has been 3 seconds since first sighting, make phantom disappear
+			if (player->GetHorizontalDotProductTo(this) > 0.75 || player->GetDotProductTo(this) > 0.75 || TimeSystem->CurrentSecond() - timeSpotted > 3)
+			{
+				EndSymptom();
+			}
 		}
 	}
 }
