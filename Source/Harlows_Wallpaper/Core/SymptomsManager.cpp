@@ -1,7 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SymptomsManager.h"
+#include "DoubleTake.h"
+#include "Phantom.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
 
 // Sets default values
@@ -147,11 +150,38 @@ void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor)
 }
 void ASymptomsManager::ImposeVoices(AActor * SymptomActor) {}
 
-void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor) {}
+//SymptomActor = DoubleTake, the actor that handles all "possess-able" object and their activity
+void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor)
+{
+	if (DebugSymptomCanTickThisFrame && GEngine)
+	{
+		// just print that we're executing successfully, for now
+		FString DebugMsg = FString::Printf(TEXT("Running DoubleTake Symptom on Actor %s"), *SymptomActor->GetName());
+		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
+	}
+
+	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running DoubleTake Symptom on Actor %s"), *SymptomActor->GetName());
+	
+	//Cast SymptomActor to DoubleTake (which we know it has to be) and call its Update() method
+	((ADoubleTake*)SymptomActor)->Update();
+}
 
 void ASymptomsManager::ImposeWarpingWalls(AActor * SymptomActor) {}
 
-void ASymptomsManager::ImposePhantom(AActor * SymptomActor) {}
+void ASymptomsManager::ImposePhantom(AActor * SymptomActor)
+{
+	if (DebugSymptomCanTickThisFrame && GEngine)
+	{
+		// just print that we're executing successfully, for now
+		FString DebugMsg = FString::Printf(TEXT("Running Phantom Symptom on Actor %s"), *SymptomActor->GetName());
+		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
+	}
+
+	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running Phantom Symptom on Actor %s"), *SymptomActor->GetName());
+
+	//Cast SymptomActor to Phantom (which we know it has to be) and call its Update() method
+	((APhantom*)SymptomActor)->Update();
+}
 
 void ASymptomsManager::ImposeBackIsTurned(AActor * SymptomActor) {}
 

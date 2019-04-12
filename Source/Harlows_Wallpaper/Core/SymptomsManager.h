@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "PossessedObject.h"
+#include "Phantom.h"
 #include "SymptomUtilitiesManager.h"
 #include "SymptomRelatedClasses/DestructibleFloor.h"
 #include "SymptomsManager.generated.h"
