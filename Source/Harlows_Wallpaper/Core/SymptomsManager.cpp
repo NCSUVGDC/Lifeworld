@@ -137,26 +137,26 @@ void ASymptomsManager::ImposeSizePerception(AActor * SymptomActor)
 
 	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running SizePerception Symptom on Actor %s"), *SymptomActor->GetName());
 	
-	// Scale it up to a base scale of 2
-	float scaleSize = 2.0;
-	float distance = 1.0; // TODO: Actually calculate distance
-	FVector NewScale = FVector((distance / 260.0) * scaleSize, (distance / 260.0) * scaleSize, (distance / 260.0) * scaleSize);
-	SymptomActor->SetActorScale3D(NewScale);
-
+	// TODO: actor's size changes
 }
 
+{
+void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor)
+	ADestructibleFloor* current = (ADestructibleFloor*)SymptomActor;
+	// Value is seconds before the start of recovery
+	current->StartSymptom(14);
+	// Note* Timers are in seconds from start of symptom, floor falls between 4-10 seconds in
 void ASymptomsManager::ImposeVoices(AActor * SymptomActor) {}
+}
 
 void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor) {}
 
 void ASymptomsManager::ImposeWarpingWalls(AActor * SymptomActor) {}
 
 void ASymptomsManager::ImposePhantom(AActor * SymptomActor) {}
-
 void ASymptomsManager::ImposeBackIsTurned(AActor * SymptomActor) {}
 
+
+
 void ASymptomsManager::ImposeLensFlaring(AActor * SymptomActor) {}
-
 void ASymptomsManager::ImposeBreatheIn(AActor * SymptomActor) {}
-
-void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor) {}

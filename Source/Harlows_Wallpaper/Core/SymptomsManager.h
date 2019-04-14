@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "SymptomUtilitiesManager.h"
+#include "SymptomRelatedClasses/DestructibleFloor.h"
 #include "SymptomsManager.generated.h"
 
 #define MAX_SYMPTOMS 9
@@ -71,13 +72,13 @@ private:
 	 * to normal as player approaches.
 	 */
 	UFUNCTION()
-		void ImposeSizePerception(AActor* SymptomActor);
+	void ImposeSizePerception(AActor* SymptomActor);
 
 	/**
 	 * proc voices with varying volume levels.
 	 */
 	UFUNCTION()
-		void ImposeVoices(AActor* SymptomActor);
+	void ImposeVoices(AActor* SymptomActor);
 
 	/**
 	 * forces actor to dart away from player's
@@ -86,47 +87,47 @@ private:
 	 * radius.
 	 */
 	UFUNCTION()
-		void ImposeDoubleTake(AActor* SymptomActor);
+	void ImposeDoubleTake(AActor* SymptomActor);
 
 	/**
 	 * warp walls based on intensity level
 	 */
 	UFUNCTION()
-		void ImposeWarpingWalls(AActor* SymptomActor);
+	void ImposeWarpingWalls(AActor* SymptomActor);
 
 	/**
 	 * create phantom to haunt player at the edge
 	 * of their vision.
 	 */
 	UFUNCTION()
-		void ImposePhantom(AActor* SymptomActor);
+	void ImposePhantom(AActor* SymptomActor);
 
 	/**
 	 * change the actor based on some set of parameters
 	 */
+	void ImposeBackIsTurned(AActor* SymptomActor);
 	UFUNCTION()
-		void ImposeBackIsTurned(AActor* SymptomActor);
 
 	/**
 	 * duplicate light source in a scattered line
-	 * (see trello card reference images)
 	 */
+	 * (see trello card reference images)
 	UFUNCTION()
-		void ImposeLensFlaring(AActor* SymptomActor);
+	void ImposeLensFlaring(AActor* SymptomActor);
 
 	/**
-	 * (see trello card for details)
 	 */
+	 * (see trello card for details)
 	UFUNCTION()
-		void ImposeBreatheIn(AActor* SymptomActor);
 
+	void ImposeBreatheIn(AActor* SymptomActor);
 	/**
 	 * over time, floor falls away piece-wise around
 	 * the player. restores all fallen objects once
-	 * this completes.
 	 */
+	 * this completes.
 	UFUNCTION()
-		void ImposeFallingFloor(AActor* SymptomActor);
+	void ImposeFallingFloor(AActor* SymptomActor);
 
 	// See the note for the `DebugSymptomTickFrequency` property
 	// We keep `DebugSymptomCanTickThisFrame` as a class-scoped variable so other methods (namely the
