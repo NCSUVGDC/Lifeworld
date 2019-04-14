@@ -16,7 +16,7 @@
 	],
 	"Plugins": [
 		{
-			"Name": "SteamAudio","ApexDestruction"
+			"Name": "SteamAudio",
 			"Enabled": true
 		}
 	]

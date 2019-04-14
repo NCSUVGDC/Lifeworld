@@ -6,6 +6,8 @@
 #include "CoreMinimal.h"
 #include "SymptomUtilitiesManager.generated.h"
 
+//#define MAX_SYMPTOMS 1
+
 // Container defining a Symptom's effect and duration
 USTRUCT()
 struct FSymptomDetails
@@ -35,19 +37,6 @@ class HARLOWS_WALLPAPER_API USymptomUtilitiesManager : public UObject
 public:
 	USymptomUtilitiesManager();
 	~USymptomUtilitiesManager();
-
-	static enum SymptomIndex
-	{
-		SizePerception,
-		Voices,
-		DoubleTake,
-		WarpingWalls,
-		Phantom,
-		BackIsTurned,
-		LensFlaring,
-		BreatheIn,
-		FallingFloor
-	};
 
 	// Details for each symptom; names are in the format 'Symptoms.<SymptomName>'
 	static TMap<FName, FSymptomDetails> SymptomDetails;
