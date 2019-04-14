@@ -26,6 +26,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
+	/*
     UPROPERTY()
         AHarlowPawn* playerPawn;
     UPROPERTY()
@@ -34,4 +35,5 @@ private:
         FTimespan timeSinceLastFire;
     UPROPERTY()
         FTimerHandle voiceTimerHandle;
+		*/
 };
