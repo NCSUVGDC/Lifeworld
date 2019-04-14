@@ -19,6 +19,7 @@ AVoices::AVoices()
 void AVoices::BeginPlay()
 {
 	Super::BeginPlay();
+	/*
     playerPawn = Cast<AHarlowPawn>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
     if (playerPawn == nullptr) {
         UE_LOG(LogTemp, Warning, TEXT("Cast to HarlowPawn fails"));
@@ -29,13 +30,16 @@ void AVoices::BeginPlay()
     FString voiceType = "General";
     voiceTimerDel.BindUFunction(this, FName("getVoices"), voiceType);
     GetWorldTimerManager().SetTimer(voiceTimerHandle, voiceTimerDel, 10.0f, true, 0.0f);
+	*/
 }
 
 // Called every frame
 void AVoices::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	/*
     FTimespan timePassed = FTimespan::FromSeconds(DeltaTime);
     timeSinceLastFire += timePassed;
+	*/
 }
 
