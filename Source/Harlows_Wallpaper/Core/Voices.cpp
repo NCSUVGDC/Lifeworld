@@ -26,16 +26,33 @@ void AVoices::BeginPlay()
     }
     playerPawn->voicesActivated = true;
     FTimerDelegate voiceTimerDel;
-    FString voiceType = "General";
+    FString voiceType = "Voice";
+	FTimerDelegate whisperTimerDel;
+	FString whisperType = "Whisper";
+	FTimerDelegate gibberishTimerDel;
+	FString gibberishType = "Gibberish";
+	FTimerDelegate footstepsTimerDel;
+	FString footstepsType = "Footsteps";
     voiceTimerDel.BindUFunction(playerPawn, FName("getVoices"), voiceType);
-    GetWorldTimerManager().SetTimer(voiceTimerHandle, voiceTimerDel, 5.0f, true, 0.0f);
+	whisperTimerDel.BindUFunction(playerPawn, FName("getVoices"), whisperType);
+	gibberishTimerDel.BindUFunction(playerPawn, FName("getVoices"), gibberishType);
+	footstepsTimerDel.BindUFunction(playerPawn, FName("getVoices"), footstepsType);
+    GetWorldTimerManager().SetTimer(whisperTimerHandle, whisperTimerDel, 10.0f, true, 75.0f);
+	GetWorldTimerManager().SetTimer(gibberishTimerHandle, gibberishTimerDel, 1.0f, false, 75.0f);
+	GetWorldTimerManager().SetTimer(voiceTimerHandle, voiceTimerDel, 5.0f, true, 210.0f);
+	GetWorldTimerManager().SetTimer(footstepsTimerHandle, footstepsTimerDel, 1.0f, false, 225.0f);
+	GetWorldTimerManager().SetTimer(stopWhisperTimerHandle, this, &AVoices::StopWhisperTimer, 1.0f, false, 210.0f);
 }
 
 // Called every frame
 void AVoices::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-    FTimespan timePassed = FTimespan::FromSeconds(DeltaTime);
-    timeSinceLastFire += timePassed;
+
+}
+
+void AVoices::StopWhisperTimer() 
+{
+	GetWorld()->GetTimerManager().ClearTimer(whisperTimerHandle);
 }
 

@@ -31,7 +31,15 @@ private:
     UPROPERTY()
         bool voicesActivated;
     UPROPERTY()
-        FTimespan timeSinceLastFire;
-    UPROPERTY()
         FTimerHandle voiceTimerHandle;
+	UPROPERTY()
+		FTimerHandle whisperTimerHandle;
+	UPROPERTY()
+		FTimerHandle stopWhisperTimerHandle;
+	UPROPERTY()
+		FTimerHandle gibberishTimerHandle;
+	UPROPERTY()
+		FTimerHandle footstepsTimerHandle;
+	UFUNCTION()
+		void StopWhisperTimer();
 };
