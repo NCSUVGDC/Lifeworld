@@ -42,7 +42,7 @@ TMap<FName, FSymptomDetails> USymptomUtilitiesManager::InitSymptomDetails()
 	SymptomContainers.Add(FName(TEXT("Symptoms.BreatheIn")), FSymptomDetails(BreatheIn, FTimespan(0, 0, 5)));
 
 	// Falling Floor
-	SymptomContainers.Add(FName(TEXT("Symptoms.FallingFloor")), FSymptomDetails(FallingFloor, FTimespan(0, 0, 20)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.FallingFloor")), FSymptomDetails(FallingFloor, FTimespan(0, 0, 1)));
 	
 	return SymptomContainers;
 }

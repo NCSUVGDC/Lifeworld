@@ -54,6 +54,12 @@ public:
 	UPROPERTY()
 		FName TagName = "fall";
 
+	UFUNCTION(BlueprintNativeEvent)
+	void dresser(AActor* dress, float time);
+	virtual void dresser_Implementation(AActor* dress, float time);
+
+	float delay;
+
 	FTimerHandle TimerHandle;
 	FTimerHandle TimerHandle1;
 	FTimerHandle TimerHandle2;

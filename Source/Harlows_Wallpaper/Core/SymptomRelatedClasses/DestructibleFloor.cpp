@@ -31,10 +31,10 @@ ADestructibleFloor::ADestructibleFloor()
 void ADestructibleFloor::StartSymptom(float StartRestoreTime)
 {
 
-	float Delay = FMath::RandRange(4.f, 10.f);
+	delay = FMath::RandRange(4.f, 10.f);
 
 	//Set timer for instigating falling floor
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ADestructibleFloor::FallToRuin, Delay);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ADestructibleFloor::FallToRuin, delay);
 
 	//Set timer for start of recovery checks
 	GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, StartRestoreTime);
@@ -66,6 +66,11 @@ void ADestructibleFloor::FallToRuin()
 		if (FloorVolume.Intersect(ActorBox)) {
 			//Map their name to their transform and store it
 			Map.Add(Current->GetName(), Current->GetTransform());
+
+			if (Current->GetName().Contains("BP_Dresser")) {
+				dresser(Current, delay);
+			}
+
 			UE_LOG(LogTemp, Warning, TEXT("%s is on %s\n"), *Current->GetName(), *this->GetName());
 		}
 	}
@@ -123,6 +128,10 @@ void ADestructibleFloor::Restore()
 		}
 	}
 
+}
+
+void ADestructibleFloor::dresser_Implementation(AActor* dress, float time)
+{
 }
 
 // Called when the game starts or when spawned
