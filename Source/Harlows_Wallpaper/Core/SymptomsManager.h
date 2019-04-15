@@ -105,27 +105,28 @@ private:
 	/**
 	 * change the actor based on some set of parameters
 	 */
-	void ImposeBackIsTurned(AActor* SymptomActor);
 	UFUNCTION()
+	void ImposeBackIsTurned(AActor* SymptomActor);
+	
 
 	/**
 	 * duplicate light source in a scattered line
-	 */
 	 * (see trello card reference images)
+	 */
 	UFUNCTION()
 	void ImposeLensFlaring(AActor* SymptomActor);
 
 	/**
-	 */
 	 * (see trello card for details)
+	 */
 	UFUNCTION()
 
 	void ImposeBreatheIn(AActor* SymptomActor);
 	/**
 	 * over time, floor falls away piece-wise around
 	 * the player. restores all fallen objects once
-	 */
 	 * this completes.
+	 */
 	UFUNCTION()
 	void ImposeFallingFloor(AActor* SymptomActor);
 

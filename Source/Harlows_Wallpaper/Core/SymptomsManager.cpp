@@ -140,14 +140,15 @@ void ASymptomsManager::ImposeSizePerception(AActor * SymptomActor)
 	// TODO: actor's size changes
 }
 
-{
 void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor)
+{
 	ADestructibleFloor* current = (ADestructibleFloor*)SymptomActor;
 	// Value is seconds before the start of recovery
 	current->StartSymptom(14);
 	// Note* Timers are in seconds from start of symptom, floor falls between 4-10 seconds in
-void ASymptomsManager::ImposeVoices(AActor * SymptomActor) {}
 }
+
+void ASymptomsManager::ImposeVoices(AActor * SymptomActor) {}
 
 void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor) {}
 

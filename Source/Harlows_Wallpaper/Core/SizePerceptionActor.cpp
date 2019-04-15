@@ -71,7 +71,7 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 
 	float scaleValue = FMath::RandRange((float)0.5, (float)3);
 
-	if (proceed && realtimeSecondsInt > 2) {
+	if (proceed) {
 		Scale(scaleValue);
 		scaleTime = (float)realtimeSecondsInt;
 		//UE_LOG(LogTemp, Warning, TEXT("scaleTime is %f"), scaleTime);
