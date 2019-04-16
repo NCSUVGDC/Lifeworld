@@ -37,8 +37,8 @@ void AVoices::BeginPlay()
 	whisperTimerDel.BindUFunction(playerPawn, FName("getVoices"), whisperType);
 	gibberishTimerDel.BindUFunction(playerPawn, FName("getVoices"), gibberishType);
 	footstepsTimerDel.BindUFunction(playerPawn, FName("getVoices"), footstepsType);
-    GetWorldTimerManager().SetTimer(whisperTimerHandle, whisperTimerDel, 10.0f, true, 75.0f);
-	GetWorldTimerManager().SetTimer(gibberishTimerHandle, gibberishTimerDel, 1.0f, false, 75.0f);
+    GetWorldTimerManager().SetTimer(whisperTimerHandle, whisperTimerDel, 10.0f, true, 1.0f);
+	GetWorldTimerManager().SetTimer(gibberishTimerHandle, gibberishTimerDel, 1.0f, false, 1.0f);
 	GetWorldTimerManager().SetTimer(voiceTimerHandle, voiceTimerDel, 5.0f, true, 210.0f);
 	GetWorldTimerManager().SetTimer(footstepsTimerHandle, footstepsTimerDel, 1.0f, false, 225.0f);
 	GetWorldTimerManager().SetTimer(stopWhisperTimerHandle, this, &AVoices::StopWhisperTimer, 1.0f, false, 210.0f);
