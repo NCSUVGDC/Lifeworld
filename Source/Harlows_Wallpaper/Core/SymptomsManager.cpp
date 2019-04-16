@@ -3,11 +3,12 @@
 #include "SymptomsManager.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
+#include "Harlows_Wallpaper/Core/SizePerceptionActor.h"
 
 // Sets default values
 ASymptomsManager::ASymptomsManager()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
@@ -20,8 +21,8 @@ void ASymptomsManager::BeginPlay()
 	if (TickInterval > 0)
 		SetActorTickInterval(TickInterval);
 
-	UE_LOG(LogTemp, Log, TEXT("%d symptoms available"), USymptomUtilitiesManager::SymptomDetails.Num());
-	
+	UE_LOG(LogTemp, Warning, TEXT("%d symptoms available"), USymptomUtilitiesManager::SymptomDetails.Num());
+
 	// Handle actors in world with pre-assigned Symptoms via the Tag system
 	// This is done once here on BeginPlay; any future symptoms should be added via AddSymptomToActor
 	TArray<AActor*> FoundActors;
@@ -62,7 +63,7 @@ void ASymptomsManager::Tick(float DeltaTime)
 	{
 		FSymptom *Symptom = &(SymptomActors[i]);
 
-		// The inner most parentheses with `SymptomFunctions[Symptom->SymptomEffectIndex]` gets the
+		// The inner most parentheses with `SymptomFunctions[Symptom->SymptomEffectIndex]` gets the 
 		// symptom function pointer; the `this->*` dereferences that function pointer and calls it;
 		// The finally parentheses with `Symptom->SymptomActor` are the function args
 		(this->* (SymptomFunctions[Symptom->SymptomEffectIndex]))(Symptom->SymptomActor);
@@ -77,7 +78,7 @@ bool ASymptomsManager::AddSymptomToActor(AActor* Actor, const FName Symptom)
 	// Dereferencing null pointers causes a hard crash - best to catch it here and keep an eye on the log
 	if (Details == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to find symptom details for symptom '%s'! Could not add to actor '%s'!"), 
+		UE_LOG(LogTemp, Error, TEXT("Failed to find symptom details for symptom '%s'! Could not add to actor '%s'!"),
 			*Symptom.ToString(), *Actor->GetName());
 		return false;
 	}
@@ -111,7 +112,7 @@ void ASymptomsManager::UpdateActiveSymptoms(float DeltaTime)
 		// Decrement duration
 		FSymptom* Symptom = &SymptomActors[SymptomIdx];
 		Symptom->Duration -= Decrement;
-		UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Log, TEXT("%f seconds remaining for active symptom in %s"), 
+		UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Log, TEXT("%f seconds remaining for active symptom in %s"),
 			Symptom->Duration.GetTotalSeconds(), *(Symptom->SymptomActor->GetName()));
 
 		// Remove if expired
@@ -133,8 +134,9 @@ void ASymptomsManager::ImposeSizePerception(AActor * SymptomActor)
 		FString DebugMsg = FString::Printf(TEXT("Running SizePerception Symptom on Actor %s"), *SymptomActor->GetName());
 		GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
 	}
-	
+
 	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running SizePerception Symptom on Actor %s"), *SymptomActor->GetName());
+	
 	// TODO: actor's size changes
 }
 
@@ -142,9 +144,10 @@ void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor)
 {
 	ADestructibleFloor* current = (ADestructibleFloor*)SymptomActor;
 	// Value is seconds before the start of recovery
-	// Note* Timers are in seconds from start of symptom, floor falls between 4-10 seconds in
 	current->StartSymptom(14);
+	// Note* Timers are in seconds from start of symptom, floor falls between 4-10 seconds in
 }
+
 void ASymptomsManager::ImposeVoices(AActor * SymptomActor) {}
 
 void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor) {}
@@ -152,9 +155,9 @@ void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor) {}
 void ASymptomsManager::ImposeWarpingWalls(AActor * SymptomActor) {}
 
 void ASymptomsManager::ImposePhantom(AActor * SymptomActor) {}
-
 void ASymptomsManager::ImposeBackIsTurned(AActor * SymptomActor) {}
 
-void ASymptomsManager::ImposeLensFlaring(AActor * SymptomActor) {}
 
+
+void ASymptomsManager::ImposeLensFlaring(AActor * SymptomActor) {}
 void ASymptomsManager::ImposeBreatheIn(AActor * SymptomActor) {}

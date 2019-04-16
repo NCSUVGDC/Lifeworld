@@ -16,6 +16,7 @@ void AHarlowPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	this->Tags.Add(FName("Player"));
 }
 
 // Called every frame

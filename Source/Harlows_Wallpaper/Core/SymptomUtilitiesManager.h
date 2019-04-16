@@ -11,14 +11,14 @@ USTRUCT()
 struct FSymptomDetails
 {
 	GENERATED_BODY()
-	
-	// index of symptom effect
-	UPROPERTY()
-	int32 SymptomEffectIndex;
+
+		// index of symptom effect
+		UPROPERTY()
+		int32 SymptomEffectIndex;
 
 	// duration of each symptom
 	UPROPERTY()
-	FTimespan SymptomDuration;
+		FTimespan SymptomDuration;
 
 	// details constructor (with default values for testing purposes)
 	FSymptomDetails(int32 FunctionIndex = 0, FTimespan Duration = FTimespan(0, 0, 0)) : SymptomEffectIndex(FunctionIndex), SymptomDuration(Duration) {}

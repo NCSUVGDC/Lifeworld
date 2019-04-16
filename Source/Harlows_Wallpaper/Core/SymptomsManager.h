@@ -15,22 +15,22 @@ struct FSymptom
 {
 	GENERATED_BODY()
 
-	// Actor affected by a symptom
-	UPROPERTY()
-	AActor* SymptomActor;
+		// Actor affected by a symptom
+		UPROPERTY()
+		AActor* SymptomActor;
 
 	// Duration of the symptom; decremented each tick in UpdateActiveSymptoms
 	UPROPERTY()
-	FTimespan Duration;
+		FTimespan Duration;
 
 	// Index of the symptom's "effect" function in SymptomFunctions
 	UPROPERTY()
-	int32 SymptomEffectIndex;
+		int32 SymptomEffectIndex;
 
 	// Symptom constructor
 	FSymptom(AActor* TaggedActor, FTimespan SymptomDuration, int32 EffectIndex)
 		: SymptomActor(TaggedActor), Duration(SymptomDuration), SymptomEffectIndex(EffectIndex) {}
-		
+
 	// Default symptom constructor (mainly used for testing)
 	FSymptom() : SymptomActor(NULL), Duration(FTimespan(0, 0, 10)), SymptomEffectIndex(0) {}
 
@@ -58,12 +58,12 @@ private:
 
 	// Array of actors with active Symptoms
 	UPROPERTY()
-	TArray<FSymptom> SymptomActors;
+		TArray<FSymptom> SymptomActors;
 
 	// Decrements each symptom's durations by the given DeltaTime (called in Tick)
 	// Removes any expired symptoms
 	UFUNCTION()
-	void UpdateActiveSymptoms(float DeltaTime);
+		void UpdateActiveSymptoms(float DeltaTime);
 
 	/* Symptom functions */
 
@@ -107,6 +107,7 @@ private:
 	 */
 	UFUNCTION()
 	void ImposeBackIsTurned(AActor* SymptomActor);
+	
 
 	/**
 	 * duplicate light source in a scattered line
@@ -119,8 +120,8 @@ private:
 	 * (see trello card for details)
 	 */
 	UFUNCTION()
-	void ImposeBreatheIn(AActor* SymptomActor);
 
+	void ImposeBreatheIn(AActor* SymptomActor);
 	/**
 	 * over time, floor falls away piece-wise around
 	 * the player. restores all fallen objects once
@@ -153,11 +154,11 @@ public:
 
 	/**
 	 * Tags an actor with a Symptom
-	 * 
+	 *
 	 * @return true if the symptom was successfully added
 	 */
 	UFUNCTION(BlueprintCallable, Category = "SymptomManager")
-	bool AddSymptomToActor(AActor* Actor, const FName SymptomTag);
+		bool AddSymptomToActor(AActor* Actor, const FName SymptomTag);
 
 	// Don't log symptom durations every tick or we'll spam the logs
 	// Instead increment a counter each tick and log if it says it's been long enough since the last tick
