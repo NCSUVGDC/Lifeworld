@@ -20,15 +20,19 @@ public:
 
 	// Get total elapsed days
 	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
-	int32 GetElapsedDays();
+		int32 GetElapsedDays();
 
 	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
-	// Get current minute
-	int32 CurrentMinute();
-	
+		// Get current minute
+		int32 CurrentMinute();
+
 	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
-	// Get current hour
-	int32 CurrentHour();
+		// Get current hour
+		int32 CurrentHour();
+
+	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
+		// Get current second
+		int32 CurrentSecond();
 
 private:
 	// amount of in-game time passed
@@ -43,5 +47,5 @@ protected:
 public:
 	// rate at which time progresses
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Properties)
-	float Rate = 1.0f;
+		float Rate = 1.0f;
 };
