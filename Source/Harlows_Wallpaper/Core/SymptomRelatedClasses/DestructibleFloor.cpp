@@ -30,15 +30,13 @@ ADestructibleFloor::ADestructibleFloor()
 
 void ADestructibleFloor::StartSymptom(float StartRestoreTime)
 {
+		float Delay = FMath::RandRange(240.f, 246.f);
 
-	float Delay = FMath::RandRange(4.f, 10.f);
+		//Set timer for instigating falling floor
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADestructibleFloor::FallToRuin, Delay);
 
-	//Set timer for instigating falling floor
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ADestructibleFloor::FallToRuin, Delay);
-
-	//Set timer for start of recovery checks
-	GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, StartRestoreTime);
-	
+		//Set timer for start of recovery checks
+		GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, StartRestoreTime);
 }
 
 void ADestructibleFloor::FallToRuin()
