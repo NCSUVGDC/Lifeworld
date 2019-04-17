@@ -36,7 +36,7 @@ void ADestructibleFloor::StartSymptom(float StartRestoreTime)
 		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADestructibleFloor::FallToRuin, 1.f, false, Delay);
 
 		//Set timer for start of recovery checks
-		GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, 1.f, false, StartRestoreTime);
+		GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, 1.f, false, StartRestoreTime + 250.f);
 }
 
 void ADestructibleFloor::FallToRuin()
