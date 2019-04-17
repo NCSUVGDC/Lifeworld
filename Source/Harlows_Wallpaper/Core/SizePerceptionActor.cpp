@@ -51,7 +51,7 @@ void ASizePerceptionActor::BeginPlay()
 
 	// Sets proceed to a value that wouldn't cause problems
 	proceed = true;
-	scaleTime = -16;
+	scaleTime = 30;
 
 	// Initializes DotProducts to an array of length of SizePerceptionActors
 	DotProducts.SetNum(SizePerceptionActors.Num());

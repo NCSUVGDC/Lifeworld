@@ -68,6 +68,6 @@ private:
 	bool isRunning = false;
 
 	//Time (in seconds) in game time when the phantom should spawn
-	float timeToSpawnAt = 5.0f;
+	float timeToSpawnAt = 165.f;
 
 };

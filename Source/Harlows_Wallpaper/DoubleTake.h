@@ -81,5 +81,5 @@ private:
 	bool isSpotted = false;
 
 	//Time (in seconds) in game time when the DoubleTake should spawn
-	float timeToSpawnAt = 10.0f;
+	float timeToSpawnAt = 105.f;
 };
