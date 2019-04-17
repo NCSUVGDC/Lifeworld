@@ -69,7 +69,7 @@ void ASizePerceptionActor::Tick(float DeltaTime)
 	float realtimeSeconds = UGameplayStatics::GetRealTimeSeconds(GetWorld());
 	int32 realtimeSecondsInt = (int32)realtimeSeconds;
 
-	float scaleValue = FMath::RandRange((float)0.5, (float)2);
+	float scaleValue = FMath::RandRange((float)0.5, (float)3.5);
 
 	if (proceed) {
 		Scale(scaleValue);

@@ -18,27 +18,27 @@ TMap<FName, FSymptomDetails> USymptomUtilitiesManager::InitSymptomDetails()
 	TMap<FName, FSymptomDetails> SymptomContainers;
 	
 	// size perception
-	SymptomContainers.Add(FName(TEXT("Symptoms.SizePerception")), FSymptomDetails(SizePerception, FTimespan(0, 0, 20)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.SizePerception")), FSymptomDetails(SizePerception, FTimespan(0, 5, 0)));
 
 	// voices
 
-	SymptomContainers.Add(FName(TEXT("Symptoms.Voices")), FSymptomDetails(Voices, FTimespan(0, 4, 0)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.Voices")), FSymptomDetails(Voices, FTimespan(0, 5, 0)));
 	// double-take
 	// BackIsTurned
-	SymptomContainers.Add(FName(TEXT("Symptoms.Phantom")), FSymptomDetails(Phantom, FTimespan(0, 0, 10)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.Phantom")), FSymptomDetails(Phantom, FTimespan(0, 5, 0)));
 
-	SymptomContainers.Add(FName(TEXT("Symptoms.DoubleTake")), FSymptomDetails(DoubleTake, FTimespan(0, 0, 10)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.DoubleTake")), FSymptomDetails(DoubleTake, FTimespan(0, 5, 0)));
 	// Warping Walls
 
 
-	SymptomContainers.Add(FName(TEXT("Symptoms.WarpingWalls")), FSymptomDetails(WarpingWalls, FTimespan(0, 0, 20)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.WarpingWalls")), FSymptomDetails(WarpingWalls, FTimespan(0, 0, 0)));
 	// Phantom
-	SymptomContainers.Add(FName(TEXT("Symptoms.BackIsTurned")), FSymptomDetails(BackIsTurned, FTimespan(0, 0, 30)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.BackIsTurned")), FSymptomDetails(BackIsTurned, FTimespan(0, 0, 0)));
 
-	SymptomContainers.Add(FName(TEXT("Symptoms.LensFlaring")), FSymptomDetails(LensFlaring, FTimespan(0, 0, 5)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.LensFlaring")), FSymptomDetails(LensFlaring, FTimespan(0, 0, 0)));
 	// Lens Flaring (potentially cut for demo)
 
-	SymptomContainers.Add(FName(TEXT("Symptoms.BreatheIn")), FSymptomDetails(BreatheIn, FTimespan(0, 0, 5)));
+	SymptomContainers.Add(FName(TEXT("Symptoms.BreatheIn")), FSymptomDetails(BreatheIn, FTimespan(0, 0, 0)));
 	// Breathe In (potentially cut)
 
 	// Falling Floor
