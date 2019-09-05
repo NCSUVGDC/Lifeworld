@@ -30,36 +30,18 @@ public:
 		*Mesh:		The new mesh
 		*Material:	The new material
 
-		*Return:	Original static mesh component, null if object isn't valid
+		*Return:	Original static mesh component, null if shapeshift doesn't occur
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
 		UStaticMeshComponent* Shapeshift(AActor *object, UStaticMesh *mesh, UMaterialInterface *material);
 
 	/*
-		Returns a random actor from all valid actors in the scene
+		Gets an array of actors that can be used for Shapeshift
 
-		*Return:  Random valid actor, null if no actors are valid
+		*Return:	Array of actors that are valid for Shapeshift
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		AActor* SelectRandomAll();
-
-	/*
-		Returns a random actor from all valid and currently unseen actors in the scene
-
-		*Return:  Random valid actor that is not being viewed, null if no actors work
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		AActor* SelectRandomUnseen();
-	
-	/*
-		Validates that an actor is unseen at the moment
-
-		*Object:  The actor being checked if seen or not
-
-		*Return:  True if actor is not being viewed, false if being viewed
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		bool ValidateUnseen(AActor *object);
+		TArray<AActor*> getShapeshiftActors() const;
 
 private:
 	// Array of actors that can be accessed by symptom
