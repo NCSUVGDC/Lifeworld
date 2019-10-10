@@ -30,20 +30,17 @@ ADestructibleFloor::ADestructibleFloor()
 
 void ADestructibleFloor::StartSymptom(float StartRestoreTime)
 {
+		float Delay = FMath::RandRange(244.f, 250.f);
 
-	float Delay = FMath::RandRange(4.f, 10.f);
+		//Set timer for instigating falling floor
+		GetWorldTimerManager().SetTimer(TimerHandle, this, &ADestructibleFloor::FallToRuin, 1.f, false, Delay);
 
-	//Set timer for instigating falling floor
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ADestructibleFloor::FallToRuin, Delay);
-
-	//Set timer for start of recovery checks
-	GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, StartRestoreTime);
-	
+		//Set timer for start of recovery checks
+		GetWorldTimerManager().SetTimer(TimerHandle1, this, &ADestructibleFloor::StartChecking, 1.f, false, StartRestoreTime + 250.f);
 }
 
 void ADestructibleFloor::FallToRuin()
 {
-
 	//Remember initial Position before being destroyed
 	Position = DestructibleComponent->GetComponentLocation();
 	bCanBeDamaged = true;
