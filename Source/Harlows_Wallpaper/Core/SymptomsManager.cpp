@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SymptomsManager.h"
-#include "DoubleTake.h"
-#include "Phantom.h"
+#include "SymptomRelatedClasses/DoubleTake.h"
+#include "SymptomRelatedClasses/Phantom.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
