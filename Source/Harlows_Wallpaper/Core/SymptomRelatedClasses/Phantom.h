@@ -33,23 +33,32 @@ public:
 
 	void EndSymptom();
 
-	UPROPERTY(EditAnywhere)
-		class ASymptomsManager* SymptomManager;
+	//UPROPERTY(EditAnywhere)
+	//	class ASymptomsManager* SymptomManager;
 
 	UPROPERTY(EditAnywhere)
 		class ATimeSystem* TimeSystem;
+
+	/*
+	Find a place near player where phantom can be spawned
+
+	*Return:	True if phantom was successfully spawned
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Symptoms")
+		bool FindPhantomSpawn();
+
+	UFUNCTION(BlueprintCallable, Category = "Symptoms")
+		void SetKillTime(int inKillTime);
 
 
 private:
 
 	int tickCount = 0;
 
-	bool FindPhantomSpawn();
-
 	void SpawnPhantom(FVector spawnLoc);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Phantom", meta = (AllowPrivateAccess = "true"))
-		class UStaticMeshComponent* specMesh;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Phantom", meta = (AllowPrivateAccess = "true"))
+//		class UStaticMeshComponent* specMesh;
 
 	//Reference to the player, allows for quick access for phantom to check if it has been spotted
 	AActor * player;
@@ -69,5 +78,8 @@ private:
 
 	//Time (in seconds) in game time when the phantom should spawn
 	float timeToSpawnAt = 165.f;
+
+	bool usingKillTime = false;
+	int killTime = 0;
 
 };
