@@ -141,6 +141,13 @@ void ASymptomsManager::ImposeSizePerception(AActor * SymptomActor)
 	// TODO: actor's size changes
 }
 
+void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor)
+{
+	ADestructibleFloor* current = (ADestructibleFloor*)SymptomActor;
+	// Value is seconds before the start of recovery
+	// Note* Timers are in seconds from start of symptom, floor falls between 4-10 seconds in
+	current->StartSymptom(14);
+}
 void ASymptomsManager::ImposeVoices(AActor * SymptomActor) {}
 
 //SymptomActor = DoubleTake, the actor that handles all "possess-able" object and their activity
@@ -181,6 +188,3 @@ void ASymptomsManager::ImposeBackIsTurned(AActor * SymptomActor) {}
 void ASymptomsManager::ImposeLensFlaring(AActor * SymptomActor) {}
 
 void ASymptomsManager::ImposeBreatheIn(AActor * SymptomActor) {}
-
-void ASymptomsManager::ImposeFallingFloor(AActor * SymptomActor) {}
-
