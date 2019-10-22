@@ -29,7 +29,7 @@ void AHarlowHand::BeginPlay()
 	// Add our hand side to tha actor's name
 	FString newName = FString::Printf(TEXT("HarlowHand_%s"), *HandSideText);
 	Rename(*newName);
-	SetActorLabel(*newName, true);
+	//this->SetActorLabel(*newName, true);
 
 	if (OwningPawn == nullptr)
 	{
