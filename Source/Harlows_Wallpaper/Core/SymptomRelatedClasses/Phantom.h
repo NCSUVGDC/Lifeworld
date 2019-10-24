@@ -39,23 +39,33 @@ public:
 	UPROPERTY(EditAnywhere)
 		class ATimeSystem* TimeSystem;
 
-	/*
-	Find a place near player where phantom can be spawned
+	/* Activate the phantom symptom. The Phantom will find a location where the player is not looking and spawn there
 
-	*Return:	True if phantom was successfully spawned
+	*Kill Time:				The total time this symptom should last. 0 = unlimited (until Phantom is spotted)
+	*PeripheralViewBound:	how far the phantom is allowed to appear into the player's F.O.V before the timer for it to disappear begins (1 = direct line of sight)
+	*DirectViewBound:		how far the phantom is allowed to appear into the player's F.O.V before the phantom is forced to disappear (1 = direct line of sight)
+	*ViewTimeAllowed:		Time after entering peripheral view before the phantom is forced to disappear
+
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		bool FindPhantomSpawn();
+		void ActivatePhantom(int KillTime = 0, float PeripheralViewBound = 0.62f, float DirectViewBound = 0.75f, float ViewTimeAllowed = 0.3f);
 
+	/* Activate the phantom symptom and have it appear at a specific location
+
+	*spawnLoc: the location the phantom should spawn at
+
+	*/
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		void SetKillTime(int inKillTime);
+		void SpawnPhantom(FVector spawnLoc);
+
 
 
 private:
 
+	void FindPhantomSpawn();
+
 	int tickCount = 0;
 
-	void SpawnPhantom(FVector spawnLoc);
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Phantom", meta = (AllowPrivateAccess = "true"))
 //		class UStaticMeshComponent* specMesh;
@@ -69,7 +79,7 @@ private:
 	//Stores the time that the phantom was spotted by the player.
 	//Allows Phantom to go away eventually, even if player never actually looks directly at it.
 	//Prevents player from constantly watching it from the corner of their eye
-	int timeSpotted = 0;
+	float timeSpotted = 0.0f;
 
 	//Tells if the symptom is currently Running. 
 	//Switches to true when phantom becomes visible
@@ -80,6 +90,14 @@ private:
 	float timeToSpawnAt = 165.f;
 
 	bool usingKillTime = false;
+
 	int killTime = 0;
+
+	float timeOfLastSpawnAttempt = 0.0f;
+
+	float _PeripheralViewBound = 0.0f;
+	float _DirectViewBound = 0.0f;
+
+	float _ViewTimeAllowed = 0.0f;
 
 };
