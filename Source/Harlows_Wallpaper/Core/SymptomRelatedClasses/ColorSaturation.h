@@ -27,6 +27,8 @@ public:
 		Set the color saturation of the player's camera
 
 		*Saturation:	The saturation settings for the camera
+
+		*Return:		The original saturation
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
 		FVector4 SetColorSaturation(FVector4 Saturation);

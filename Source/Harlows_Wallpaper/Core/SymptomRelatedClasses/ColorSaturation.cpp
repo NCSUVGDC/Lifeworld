@@ -10,7 +10,7 @@
 AColorSaturation::AColorSaturation()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 }
 
@@ -25,7 +25,10 @@ void AColorSaturation::BeginPlay()
 	lifeworldPlayer = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 
 	// Sets lifeworldCamera to the camera component of lifeworldPlayer
-	lifeworldCamera = Cast<USceneComponent>(lifeworldPlayer->GetComponentByClass(UCameraComponent::StaticClass()));
+	lifeworldCamera = Cast<USceneComponent>(lifeworldPlayer->GetComponentByClass(UCameraComponent::StaticClass()))
+
+	// Enable saturation override
+	(Cast<UCameraComponent>(lifeworldCamera))->PostProcessSettings.bOverride_ColorSaturation = true;
 	
 }
 
@@ -39,8 +42,14 @@ void AColorSaturation::Tick(float DeltaTime)
 // Set the color saturation of the camera
 FVector4 AColorSaturation::SetColorSaturation(FVector4 Saturation)
 {
-	(Cast<UCameraComponent>(lifeworldCamera))->PostProcessSettings.bOverride_ColorSaturation = true;
+	FVector4 oldSaturation = (Cast<UCameraComponent>(lifeworldCamera))->PostProcessSettings.ColorSaturation;
 	(Cast<UCameraComponent>(lifeworldCamera))->PostProcessSettings.ColorSaturation = Saturation;
 
-	return Saturation;
+	return oldSaturation;
+}
+
+// Transition from the original saturation to the new saturation
+FVector4 AColorSaturation::TransitionColorSaturation(FVector4 Saturation, int seconds)
+{
+	
 }
