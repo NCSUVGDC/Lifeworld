@@ -45,13 +45,9 @@ void APhantom::Tick(float DeltaTime)
 		FindPhantomSpawn();
 	}
 
-	//If symptom is currently running, check if it has been running for too long, in which case cancel the symptom and make phantom disappear
-	if (usingKillTime)
+	if (currentSecond >= _KillTime)
 	{
-		if (currentSecond >= killTime)
-		{
-			EndSymptom();
-		}
+		EndSymptom();
 	}
 	else
 	{
@@ -75,7 +71,7 @@ void APhantom::Update()
 			{
 				//Phantom has been spotted, start the clock until it should automatically disappear
 				isSpotted = true;
-				timeSpotted = TimeSystem->CurrentSecond();
+				timeSpotted = TimeSystem->CurrentSecondFloat();
 
 				FTimerHandle timerHandle;
 
@@ -85,9 +81,9 @@ void APhantom::Update()
 		//otherwise...
 		else
 		{
-			//Now check the dot products using values (.75) that would indicate the player is looking directly at the phantom.
-			//if one of the dot products exceeds this number OR if it has been 3 seconds since first sighting, make phantom disappear
-			if (player->GetHorizontalDotProductTo(this) > _DirectViewBound || player->GetDotProductTo(this) > _DirectViewBound || TimeSystem->CurrentSecond() - timeSpotted > _ViewTimeAllowed)
+			//Now check the dot products using values that would indicate the player is looking directly at the phantom.
+			//if one of the dot products exceeds this number then make phantom disappear
+			if (player->GetHorizontalDotProductTo(this) > _DirectViewBound || player->GetDotProductTo(this) > _DirectViewBound || TimeSystem->CurrentSecondFloat() - timeSpotted > _ViewTimeAllowed)
 			{
 				EndSymptom();
 			}
@@ -98,14 +94,13 @@ void APhantom::Update()
 /** Activate the phantom */
 void APhantom::ActivatePhantom(int inKillTime, float inPeripheralViewBound, float inDirectViewBound, float inViewTimeAllowed)
 {
+	FString infinity = "inf";
+
 	SetActorTickEnabled(true);
 
-	if (inKillTime > 0)
-	{
-		usingKillTime = true;
-	}
+	_KillTime = inKillTime;
 
-	killTime = inKillTime;
+	_ViewTimeAllowed = 1000;
 
 	_PeripheralViewBound = inPeripheralViewBound;
 
@@ -185,6 +180,13 @@ void APhantom::FindPhantomSpawn()
 
 }
 
+void APhantom::SpawnPhantomWithLocation(FVector inSpawnLoc, int inKillTime, float inPeripheralViewBound, float inDirectViewBound, float inViewTimeAllowed)
+{
+	ActivatePhantom(inKillTime, inPeripheralViewBound, inDirectViewBound, inViewTimeAllowed);
+
+	SpawnPhantom(inSpawnLoc);
+}
+
 void APhantom::SpawnPhantom(FVector spawnLoc)
 {
 	//Place phantom in new location
@@ -210,5 +212,4 @@ void APhantom::EndSymptom()
 	isSpotted = false;
 	SetActorHiddenInGame(true);
 	SetActorTickEnabled(false);
-	usingKillTime = false;
 }

@@ -60,3 +60,8 @@ int32 ATimeSystem::CurrentSecond()
 {
 	return CurrentTime.GetTotalSeconds();
 }
+
+float ATimeSystem::CurrentSecondFloat()
+{
+	return CurrentTime.GetTotalSeconds();
+}

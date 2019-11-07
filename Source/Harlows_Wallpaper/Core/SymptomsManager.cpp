@@ -183,7 +183,7 @@ void ASymptomsManager::ImposePhantom(AActor * SymptomActor)
 	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running Phantom Symptom on Actor %s"), *SymptomActor->GetName());
 
 	//Cast SymptomActor to Phantom (which we know it has to be) and call its Update() method
-	((APhantom*)SymptomActor)->Update();
+	//((APhantom*)SymptomActor)->Update();
 }
 
 void ASymptomsManager::ImposeBackIsTurned(AActor * SymptomActor) {}

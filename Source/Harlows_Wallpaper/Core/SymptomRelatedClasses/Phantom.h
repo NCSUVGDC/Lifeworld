@@ -28,14 +28,6 @@ public:
 	// Prepare phantom to run the symptom
 	void SetPlayer(AActor *actor);
 
-	// Phantom updates states per call by SymptomManager
-	void Update();
-
-	void EndSymptom();
-
-	//UPROPERTY(EditAnywhere)
-	//	class ASymptomsManager* SymptomManager;
-
 	UPROPERTY(EditAnywhere)
 		class ATimeSystem* TimeSystem;
 
@@ -44,7 +36,7 @@ public:
 	*Kill Time:				The total time this symptom should last. 0 = unlimited (until Phantom is spotted)
 	*PeripheralViewBound:	how far the phantom is allowed to appear into the player's F.O.V before the timer for it to disappear begins (1 = direct line of sight)
 	*DirectViewBound:		how far the phantom is allowed to appear into the player's F.O.V before the phantom is forced to disappear (1 = direct line of sight)
-	*ViewTimeAllowed:		Time after entering peripheral view before the phantom is forced to disappear
+	*ViewTimeAllowed:		Time after entering peripheral view before the phantom is forced to disappear. 0 = unlimited
 
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
@@ -53,27 +45,36 @@ public:
 	/* Activate the phantom symptom and have it appear at a specific location
 
 	*spawnLoc: the location the phantom should spawn at
+	*Kill Time:				The total time this symptom should last. 0 = unlimited (until Phantom is spotted)
+	*PeripheralViewBound:	how far the phantom is allowed to appear into the player's F.O.V before the timer for it to disappear begins (1 = direct line of sight)
+	*DirectViewBound:		how far the phantom is allowed to appear into the player's F.O.V before the phantom is forced to disappear (1 = direct line of sight)
+	*ViewTimeAllowed:		Time after entering peripheral view before the phantom is forced to disappear. 0 = unlimited
 
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		void SpawnPhantom(FVector spawnLoc);
+		void SpawnPhantomWithLocation(FVector spawnLoc, int KillTime = 0, float PeripheralViewBound = 0.62f, float DirectViewBound = 0.75f, float ViewTimeAllowed = 0.3f);
+
+	/* Immediately ends the symptom */
+	UFUNCTION(BlueprintCallable, Category = "Symptoms")
+		void EndSymptom();
 
 
 
 private:
 
+	// Phantom updates states per tick it is active
+	void Update();
+
+	//Find a location outside of the player's view range where phantom can spawn
 	void FindPhantomSpawn();
 
-	int tickCount = 0;
-
-
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Phantom", meta = (AllowPrivateAccess = "true"))
-//		class UStaticMeshComponent* specMesh;
+	//spawn the phantom in the given location and set it to enabled
+	void SpawnPhantom(FVector spawnLoc);
 
 	//Reference to the player, allows for quick access for phantom to check if it has been spotted
 	AActor * player;
 
-	//Tells if the phantom has been spotted by the player
+	//Tells if the phantom has been spotted by the player (has passed peripheral bound)
 	bool isSpotted = false;
 
 	//Stores the time that the phantom was spotted by the player.
@@ -86,18 +87,18 @@ private:
 	//Switches to false when the phantom disappears
 	bool isRunning = false;
 
-	//Time (in seconds) in game time when the phantom should spawn
-	float timeToSpawnAt = 165.f;
+	//time after spawn the phantom should automatically expire
+	int _KillTime = 0;
 
-	bool usingKillTime = false;
-
-	int killTime = 0;
-
+	//time the phantom last attempted to spawn
 	float timeOfLastSpawnAttempt = 0.0f;
 
+	//boundary of the player's peripheral view
 	float _PeripheralViewBound = 0.0f;
+	//boundary of the player's direct line of sight
 	float _DirectViewBound = 0.0f;
 
+	//time allowed after entering peripheral view before the phantom should expire
 	float _ViewTimeAllowed = 0.0f;
 
 };

@@ -34,6 +34,10 @@ public:
 		// Get current second
 		int32 CurrentSecond();
 
+	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
+		// Get current second in float form
+		float CurrentSecondFloat();
+
 private:
 	// amount of in-game time passed
 	FTimespan CurrentTime;
