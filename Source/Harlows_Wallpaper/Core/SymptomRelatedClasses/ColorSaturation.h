@@ -31,7 +31,18 @@ public:
 		*Return:		The original saturation
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		FVector4 SetColorSaturation(FVector4 Saturation);
+		FVector4 SetColorSaturation(FVector4 NewSaturation);
+
+	/*
+	//	Set the color saturation of the player's camera with a transition
+
+	//	*Saturation:	The saturation settings for the camera
+	//	*Seconds:		The duration of the transition
+
+	//	*Return:		The original saturation
+	*/
+	//UFUNCTION(BlueprintCallable, Category = "Symptoms")
+	//	FVector4 TransitionColorSaturation(FVector4 NewSaturation, float Seconds);
 
 private:
 	// Player pawn
@@ -42,4 +53,16 @@ private:
 	UPROPERTY()
 		USceneComponent *lifeworldCamera;
 
+	// The current saturation values in use
+	FVector4 Saturation;
+
+	//// Lerp saturation for transitions
+	//FVector4 TargetSaturation;
+
+	//// If the saturation is current in transition
+	//bool bInTransition;
+
+	//// Transition and elapsed time
+	//float TransitionTime;
+	//float ElapsedTime;
 };
