@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Core/SymptomsManager.h"
+#include "SymptomHelper.h"
 #include "Core/TimeSystem.h"
 #include "DoubleTake.generated.h"
 
@@ -31,17 +32,25 @@ public:
 	//Set refence to the player for easy access when calculating dot products
 	void setPlayer(AActor * ply);
 
-	//Selects an object to possess
-	bool SelectObject();
-
 	//Update called once per frame by SymptomManager
 	void Update();
 
 	UPROPERTY(EditAnywhere)
-		class ASymptomsManager* SymptomManager;
-
-	UPROPERTY(EditAnywhere)
 		class ATimeSystem* TimeSystem;
+
+	/* Select a possessable object out of player's view and activate symptom on it
+	
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Symptoms")
+		void SelectRandomUnseenObject();
+
+	/*
+	Gets an array of actors that can be used for DoubleTake
+
+	*Return:	Array of actors that are valid for DoubleTake
+*/
+	UFUNCTION(BlueprintCallable, Category = "Symptoms")
+		TArray<AActor*> getDoubleTakeActors() const;
 
 private:
 
@@ -52,8 +61,8 @@ private:
 	int tickCount = 0;
 
 	// Array of actors that can be possess by double take function
-//	UPROPERTY()
-	TArray<AActor*> DoubleTakeActors;
+	UPROPERTY()
+		TArray<AActor*> DoubleTakeActors;
 
 	//Reference to object
 	AActor * object;

@@ -54,32 +54,6 @@ void ADoubleTake::setPlayer(AActor * ply)
 void ADoubleTake::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//If enough time has passed since "DoubleTake" was last run, tell SymptomManager to run it again
-	if (TimeSystem->CurrentSecond() > timeToSpawnAt)
-	{
-		//Select an object to "possess" and move
-		if (SelectObject())
-		{
-			//Once location is found, tell symptom manager to run the Phantom symptom
-			if (SymptomManager->AddSymptomToActor(this, "Symptoms.DoubleTake"))
-			{
-				//DoubleTake has an item to move and is schedule to run, begin the symptom
-				isRunning = true;
-				timeToSpawnAt = TimeSystem->CurrentSecond() + 10.0f;
-			}
-		}
-	}
-
-	//If symptom is currently running, check if it has been running for too long, in which case cancel the symptom and make phantom disappear
-	if (isRunning)
-	{
-		if (tickCount++ > 530)
-		{
-			EndSymptom();
-			tickCount = 0;
-		}
-	}
 }
 
 void ADoubleTake::setObject(AActor * obj)
@@ -91,33 +65,20 @@ void ADoubleTake::setObject(AActor * obj)
 }
 
 
-bool ADoubleTake::SelectObject()
+void ADoubleTake::SelectRandomUnseenObject()
 {
-	//If we dont find a StaticMeshActor within player's periphery, this will allow us to at least possess the closest thing
-	AActor* closestObject = DoubleTakeActors[0];
-	float closestDot = -1;
+	AActor* chosenObject = ASymptomHelper::SelectRandomUnseen(DoubleTakeActors);
 
-	// Iterate through list of possessable objects
-	for (AActor* object : DoubleTakeActors)
+	if (chosenObject == NULL)
 	{
-		float dotProd = (GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager)->GetDotProductTo(object);
-		//If object is in periphery, possess with this symptom
-		if (dotProd >= 0.7 && dotProd < 0.8)
-		{
-			setObject(object);
-			return true;
-		}
-		//If not in periphery, check if it is closer to player's view than current "closestObject"
-		else if (dotProd > closestDot && dotProd < .8)
-		{
-			closestObject = object;
-			closestDot = dotProd;
-		}
-	}
+		FTimerHandle timerHandle;
 
-	//If a good candidate was not found, use the closest one 
-	setObject(closestObject);
-	return true;
+		GetWorldTimerManager().SetTimer(timerHandle, this, &ADoubleTake::SelectRandomUnseenObject, 3.0f, false);
+	}
+	else
+	{
+		setObject(chosenObject);
+	}
 }
 
 void ADoubleTake::Update()
@@ -171,3 +132,38 @@ void ADoubleTake::EndSymptom()
 	object->SetActorLocation(startLoc);
 	object->SetActorRotation(startRot);
 }
+
+TArray<AActor*> ADoubleTake::getDoubleTakeActors() const
+{
+	return DoubleTakeActors;
+}
+
+/**
+//If we dont find a StaticMeshActor within player's periphery, this will allow us to at least possess the closest thing
+	AActor* closestObject = DoubleTakeActors[0];
+	float closestDot = -1;
+
+	// Iterate through list of possessable objects
+	for (AActor* object : DoubleTakeActors)
+	{
+		float dotProd = (GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager)->GetDotProductTo(object);
+		//If object is in periphery, possess with this symptom
+		if (dotProd >= 0.7 && dotProd < 0.8)
+		{
+			setObject(object);
+			return true;
+		}
+		//If not in periphery, check if it is closer to player's view than current "closestObject"
+		else if (dotProd > closestDot && dotProd < .8)
+		{
+			closestObject = object;
+			closestDot = dotProd;
+		}
+	}
+
+	//If a good candidate was not found, use the closest one
+	setObject(closestObject);
+	return true;
+
+
+**/

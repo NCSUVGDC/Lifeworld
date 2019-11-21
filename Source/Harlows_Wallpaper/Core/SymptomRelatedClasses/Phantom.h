@@ -95,6 +95,7 @@ private:
 
 	//boundary of the player's peripheral view
 	float _PeripheralViewBound = 0.0f;
+
 	//boundary of the player's direct line of sight
 	float _DirectViewBound = 0.0f;
 

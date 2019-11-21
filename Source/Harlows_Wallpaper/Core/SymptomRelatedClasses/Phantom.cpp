@@ -40,19 +40,7 @@ void APhantom::Tick(float DeltaTime)
 
 	Super::Tick(DeltaTime);
 
-	if (isRunning == false && currentSecond >= timeOfLastSpawnAttempt + 2.0f)
-	{
-		FindPhantomSpawn();
-	}
-
-	if (currentSecond >= _KillTime)
-	{
-		EndSymptom();
-	}
-	else
-	{
-		Update();
-	}
+	Update();
 }
 
 
@@ -107,6 +95,15 @@ void APhantom::ActivatePhantom(int inKillTime, float inPeripheralViewBound, floa
 	_DirectViewBound = inDirectViewBound;
 
 	_ViewTimeAllowed = inViewTimeAllowed;
+
+	FindPhantomSpawn();
+
+	if (isRunning == false)
+	{
+		FTimerHandle timerHandle;
+
+		GetWorldTimerManager().SetTimer(timerHandle, this, &APhantom::FindPhantomSpawn, 3.0f, false);
+	}
 }
 
 void APhantom::FindPhantomSpawn()
