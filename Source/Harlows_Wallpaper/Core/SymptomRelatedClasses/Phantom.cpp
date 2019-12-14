@@ -20,11 +20,10 @@ void APhantom::BeginPlay()
 	Super::BeginPlay();
 
 	//Make sure phantom can't be seen 
-	SetActorHiddenInGame(true);
+	//SetActorHiddenInGame(true);
 
 	//Set phantom's reference to player
 	SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
-
 }
 
 //Set refence to player
@@ -39,34 +38,21 @@ void APhantom::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//GEngine->AddOnScreenDebugMessage(-1, 7.0f, FColor::Red, FString::FromInt(TimeSystem->CurrentSecond()) );
-
-	//If enough time has passed since "Phantom" was last run, tell SymptomManager to run it again
-	if (TimeSystem->CurrentSecond() > timeToSpawnAt)
+	if (isRunning == false && tickCount++ > 300)
 	{
-		//GEngine->AddOnScreenDebugMessage(-1, 7.0f, FColor::Red, TEXT("Spawn new phantom"));
-		//First find a location to spawn phantom
-		if (FindPhantomSpawn())
-		{
-			//Once location is found, tell symptom manager to run the Phantom symptom
-			if (SymptomManager->AddSymptomToActor(this, "Symptoms.Phantom"))
-			{
-				//Phantom has a new location and has been queued in symptom manager, time to make phantom visible in world
-				isRunning = true;
-				SetActorHiddenInGame(false);
-				timeToSpawnAt = TimeSystem->CurrentSecond() + 20.0f;
-			}
-		}
+		FindPhantomSpawn();
 	}
-
 	//If symptom is currently running, check if it has been running for too long, in which case cancel the symptom and make phantom disappear
-	if (isRunning)
+	else if (usingKillTime)
 	{
-		if (tickCount++ > 630)
+		if (TimeSystem->CurrentSecond() >= killTime)
 		{
 			EndSymptom();
-			tickCount = 0;
 		}
+	}
+	else
+	{
+		Update();
 	}
 }
 
@@ -105,6 +91,8 @@ void APhantom::Update()
 
 bool APhantom::FindPhantomSpawn()
 {
+	tickCount = 0;
+	UE_LOG(LogTemp, Warning, TEXT("attempting to spawn"));
 	//Generate FHitResult and CollisionParams that will be needed for the LineTrace
 	FHitResult OutHit;
 	FCollisionQueryParams CollisionParams;
@@ -149,6 +137,12 @@ bool APhantom::FindPhantomSpawn()
 		return true;
 	}
 
+	// just print that we're executing successfully, for now
+	FString DebugMsg = FString::Printf(TEXT("failed to spawn"));
+	GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Red, DebugMsg);
+
+	UE_LOG(LogTemp, Warning, TEXT("failed to spawn"));
+
 	return false;
 
 }
@@ -166,11 +160,29 @@ void APhantom::SpawnPhantom(FVector spawnLoc)
 	facePlayer.Yaw -= 90;
 	SetActorRotation(facePlayer);
 
+	isRunning = true;
+	SetActorHiddenInGame(false);
+	SetActorTickEnabled(true);
+
+	// just print that we're executing successfully, for now
+	FString DebugMsg = FString::Printf(TEXT("Running Phantom Symptom"));
+	GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
+
 }
 
 void APhantom::EndSymptom()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ending symptom"));
+
 	isRunning = false;
 	isSpotted = false;
 	SetActorHiddenInGame(true);
+//	SetActorTickEnabled(false);
+	usingKillTime = false;
+}
+
+void APhantom::SetKillTime(int inKillTime)
+{
+	killTime = inKillTime;
+	usingKillTime = true;
 }
