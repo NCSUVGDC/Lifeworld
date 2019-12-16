@@ -41,12 +41,12 @@ void ASomethingsChanged::BeginPlay()
 				// Gets the current tag in the list
 				FName& Symptom = symptomActor->Tags[symptomIdx];
 
-				// Check if the tag says it can be affected by Shapeshifting
+				// Check if the tag says it can be affected by SomethingsChanged
 				if (Symptom == FName("SomethingsChanged"))
 				{
 					// Add the valid actor to the validActors global variable and remove its tag
 					validActors.Add(symptomActor);
-					///UE_LOG(LogTemp, Warning, TEXT("Added %s"), *symptomActor->GetName());
+					UE_LOG(LogTemp, Warning, TEXT("Added %s"), *symptomActor->GetName());
 					symptomActor->Tags.Remove(FName("SomethingsChanged"));
 				}
 			}
@@ -184,7 +184,7 @@ FVector ASomethingsChanged::LocationChanged(AActor * object, FVector location)
 			}
 
 			// If unsafe, revert location, enable gravity/collisions, and return zero vector
-			if (safe <= 0) {
+			if (safe < 0) {
 				UE_LOG(LogTemp, Warning, TEXT("Not changing, safe is %d"), safe);
 				object->SetActorLocation(origLocation);
 				PrimitiveComponent->SetEnableGravity(true);
@@ -213,7 +213,7 @@ FVector ASomethingsChanged::LocationChanged(AActor * object, FVector location)
 			object->Tags.Remove("Moved");
 		}
 
-		// Returns the original mesh component
+		// Returns the original location
 		UE_LOG(LogTemp, Log, TEXT("Finished SomethingsChanged"));
 		return origLocation;
 	}
@@ -221,6 +221,149 @@ FVector ASomethingsChanged::LocationChanged(AActor * object, FVector location)
 	// Returns zero vector if failed
 	UE_LOG(LogTemp, Warning, TEXT("Instant failure with object %s"), *object->GetName());
 	return FVector(0);
+}
+
+FVector ASomethingsChanged::LocationChangedNoRecursion(AActor * object, FVector location)
+{
+	// If the object is part of the valid actors
+	if (object != NULL && validActors.Contains(object) && location != FVector(0))
+	{
+		// Store the object's original location for returning later
+		FVector origLocation = object->GetActorLocation();
+
+		// Initialize the actor that might be on top of object and the difference in z values
+		AActor* carriedActor = NULL;
+		FVector carriedLocation = FVector(0);
+		float diffX = 0;
+		float diffY = 0;
+		float diffZ = 0;
+
+		// Object sitting on/under other actor check
+		if (UPrimitiveComponent* PrimitiveComponent = object->FindComponentByClass<UPrimitiveComponent>())
+		{
+			// Disable object gravity and collisions so it can check touching objects
+			PrimitiveComponent->SetEnableGravity(false);
+			PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+			object->SetActorScale3D(FVector(object->GetActorScale3D().X, object->GetActorScale3D().Y, object->GetActorScale3D().Z + 0.1));
+
+			// Get the the actors that touch it and iterate through them
+			TArray<AActor*> OverlapActors;
+			PrimitiveComponent->GetOverlappingActors(OverlapActors);
+
+			// Enable gravity and collisions because we have the touching objects
+			PrimitiveComponent->SetEnableGravity(true);
+			PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+			object->SetActorScale3D(FVector(object->GetActorScale3D().X, object->GetActorScale3D().Y, object->GetActorScale3D().Z - 0.1));
+
+			// Iterate through the touching objects
+			for (int i = 0; i < OverlapActors.Num(); i++) {
+				// If an actor is above object...
+				if (OverlapActors[i]->GetActorLocation().Z > object->GetActorLocation().Z && OverlapActors[i]->IsRootComponentMovable() && OverlapActors[i]->GetClass()->GetName() != "BP_HarlowPawn_C") {
+					// Store for later
+					carriedActor = OverlapActors[i];
+					diffX = object->GetActorLocation().X - OverlapActors[i]->GetActorLocation().X;
+					diffY = object->GetActorLocation().Y - OverlapActors[i]->GetActorLocation().Y;
+					diffZ = object->GetActorLocation().Z - OverlapActors[i]->GetActorLocation().Z;
+					UE_LOG(LogTemp, Warning, TEXT("Actor above object is %s"), *OverlapActors[i]->GetName());
+				}
+			}
+
+			// Disable object gravity and collisions
+			PrimitiveComponent->SetEnableGravity(false);
+			PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+
+			// Change location of object
+			location.Z = location.Z - 0.1;
+			object->SetActorLocation(location);
+
+			// Initiate safe to change location flag
+			int safe = 0;
+
+			// Get the actors that would touch when location changes and iterate
+			PrimitiveComponent = object->FindComponentByClass<UPrimitiveComponent>();
+			PrimitiveComponent->GetOverlappingActors(OverlapActors);
+			UE_LOG(LogTemp, Warning, TEXT("Number of overlapping actors is %f"), float(OverlapActors.Num()));
+			for (int i = 0; i < OverlapActors.Num(); i++) {
+				// If an actor is above/inside object, set safe to -1
+				if (OverlapActors[i]->GetActorLocation().Z >= object->GetActorLocation().Z && OverlapActors[i]->GetClass()->GetName() != "BP_HarlowPawn_C" && OverlapActors[i] != carriedActor) {
+					safe = -1;
+					UE_LOG(LogTemp, Warning, TEXT("Safe set to -1 because %s"), *OverlapActors[i]->GetName());
+				}
+			}
+
+			// If unsafe, revert location, enable gravity/collisions, and return zero vector
+			if (safe < 0) {
+				UE_LOG(LogTemp, Warning, TEXT("Not changing, safe is %d"), safe);
+				object->SetActorLocation(origLocation);
+				PrimitiveComponent->SetEnableGravity(true);
+				PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+				return FVector(0);
+			}
+
+			// Add a temporary tag stating that it's in the moving process to prevent duplicate recursions
+			object->Tags.Add("Moved");
+
+			// If there is an actor on top, move the actor as well
+			if (carriedActor != NULL) {
+				carriedLocation = location;
+				carriedLocation.X = location.X - diffX;
+				carriedLocation.Y = location.Y - diffY;
+				carriedLocation.Z = location.Z - diffZ;
+				UE_LOG(LogTemp, Error, TEXT("Recursive going into upper actor %s"), *carriedActor->GetName());
+				LocationChanged(carriedActor, carriedLocation);
+			}
+
+			// Enable gravity and collisions
+			PrimitiveComponent->SetEnableGravity(true);
+			PrimitiveComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+
+			// Remove the Moved tag
+			object->Tags.Remove("Moved");
+		}
+
+		// Returns the original location
+		UE_LOG(LogTemp, Log, TEXT("Finished SomethingsChanged"));
+		return origLocation;
+	}
+
+	// Returns zero vector if failed
+	UE_LOG(LogTemp, Warning, TEXT("Instant failure with object %s"), *object->GetName());
+	return FVector(0);
+}
+
+UMaterialInterface* ASomethingsChanged::ColorChanged(AActor * object, FLinearColor color)
+{
+	// If the object is part of the valid actors
+	if (object != NULL && validActors.Contains(object))
+	{
+		// Get the object's static mesh component
+		TArray<UStaticMeshComponent*> components;
+		object->GetComponents<UStaticMeshComponent>(components);
+		if (components.Num() == 0) {
+			return NULL;
+		}
+		UStaticMeshComponent *meshComponent = components[0];
+
+		UMaterialInstanceDynamic* castMat = Cast<UMaterialInstanceDynamic>(meshComponent->GetMaterial(0));
+		if (castMat != nullptr) {
+			UMaterialInterface* ret = Cast<UMaterialInterface>(castMat);
+			castMat->SetVectorParameterValue(FName("Color"), color);
+			return ret;
+		}
+
+		UMaterialInstanceDynamic* dynMat = UMaterialInstanceDynamic::Create(meshComponent->GetMaterial(0), NULL);
+
+		UMaterialInterface* ret = meshComponent->GetMaterial(0);
+		dynMat->SetVectorParameterValue(FName("Color"), color);
+
+		meshComponent->SetMaterial(0, dynMat);
+
+		return ret;
+	}
+
+	// Returns null if failed
+	UE_LOG(LogTemp, Warning, TEXT("Instant failure with object %s"), *object->GetName());
+	return NULL;
 }
 
 TArray<AActor*> ASomethingsChanged::MaterialsSwap(AActor * object0, AActor * object1)
@@ -265,6 +408,36 @@ TArray<AActor*> ASomethingsChanged::MaterialsSwap(AActor * object0, AActor * obj
 
 TArray<FVector> ASomethingsChanged::LocationsSwap(AActor * object0, AActor * object1)
 {
+	// If the objects are part of the valid actors
+	if (object0 != NULL && validActors.Contains(object0) && object1 != NULL && validActors.Contains(object1))
+	{
+		// Store object0's original location
+		FVector orig0Location = object0->GetActorLocation();
+
+		// Store object1's original location
+		FVector orig1Location = object1->GetActorLocation();
+
+		FVector change1 = LocationChangedNoRecursion(object0, FVector(10));
+		if (change1 != FVector(0)) {
+			FVector change2 = LocationChangedNoRecursion(object1, orig0Location);
+			if (change2 != FVector(0)) {
+				FVector change3 = LocationChangedNoRecursion(object0, orig1Location);
+			}
+			else {
+				LocationChangedNoRecursion(object0, orig0Location);
+				return TArray<FVector>();
+			}
+		}
+		else {
+			return TArray<FVector>();
+		}
+
+		TArray<FVector> ret;
+		ret.Add(orig0Location);
+		ret.Add(orig1Location);
+		return ret;
+	}
+	
 	return TArray<FVector>();
 }
 

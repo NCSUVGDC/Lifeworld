@@ -35,7 +35,7 @@ public:
 		UMaterialInterface* MaterialChanged(AActor *object, UMaterialInterface *material);
 
 	/*
-		Changes an actor's location to a specified location
+		Changes an actor's location to a specified location. Also moves all objects below/above object
 
 		*Object:	The changed actor
 		*Location:	The new location
@@ -44,6 +44,28 @@ public:
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
 		FVector LocationChanged(AActor *object, FVector location);
+
+	/*
+		Changes an actor's location to a specified location. Only moves actors above object
+
+		*Object:	The changed actor
+		*Location:	The new location
+
+		*Return:	Original location of object, zero vector if change doesn't occur
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Symptoms")
+		FVector LocationChangedNoRecursion(AActor *object, FVector location);
+
+	/*
+		Changes an actor's base color
+
+		*Object:	The changed actor
+		*Color:		The new color
+
+		*Return:	Original color of object, null if change doesn't occur
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Symptoms")
+		UMaterialInterface* ColorChanged(AActor *object, FLinearColor color);
 
 	/*
 		Swap two actors' materials
