@@ -1,40 +1,42 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "DoubleTake.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
 
-
-// Sets default values
+//Sets default values
 ADoubleTake::ADoubleTake()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	//Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
+TArray<AActor*> ADoubleTake::getDoubleTakeActors() const
+{
+	return DoubleTakeActors;
+}
+
+//Called when the game starts or when spawned
 void ADoubleTake::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Get list of all Actors in the game
+	//Get list of all Actors in the game
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), FoundActors);
 
-	// If the actor has the "possess" tag, add it to the list of possibly manipulated actors
+	//If the actor has the proper tag, add it to the list of possibly manipulated actors
 	for (AActor* Actor : FoundActors)
 	{
-		// Check for tags
+		//Check if the actor has any tags
 		if (Actor->Tags.Num() != 0)
 		{
-			// Loop backwards over the list so we can safely remove tags as we iterate
+			//Loop backwards over the list of tags
 			for (int Idx = Actor->Tags.Num() - 1; Idx >= 0; Idx--)
 			{
 				FName& TagName = Actor->Tags[Idx];
 
-				//check if the tag says it can be moved by DoubleTakeSymptom
-				if (TagName == FName("possess"))
+				//If the tag says it can be moved by this symptom, add it to the list
+				if (TagName == FName(*DoubleTakeTag))
 				{
 					DoubleTakeActors.Add(Actor);
 				}
@@ -42,58 +44,84 @@ void ADoubleTake::BeginPlay()
 		}
 	}
 
-	setPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+	//tell the manager what the player actor is
+	SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
 }
 
-void ADoubleTake::setPlayer(AActor * ply)
+//tell the manager which actor is the player
+void ADoubleTake::SetPlayer(AActor * ply)
 {
-	player = ply;
+	_Player = ply;
 }
 
-// Called every frame
+/** Select a random unseen object for the double take symptom.
+ * @Return: true if a proper object is found, false if not
+ */
+bool ADoubleTake::StartSymptom(float inPeripheralViewBound)
+{
+	//find a random unseen object with the tag "DoubleTake"
+	AActor* chosenObject = ASymptomHelper::SelectRandomUnseen(DoubleTakeActors);
+
+	if (chosenObject != NULL)
+	{
+		_Object = chosenObject;
+
+		_StartLoc = _Object->GetActorLocation();
+		_StartRot = _Object->GetActorRotation();
+
+		_IsSpotted = false;
+
+		_PeripheralViewBound = inPeripheralViewBound;
+
+		SetActorTickEnabled(true);
+
+		return true;
+	}
+
+	return false;
+}
+
+/** Reset the object's position and orientation and end the symptom */
+void ADoubleTake::EndSymptom()
+{
+	_Object->SetActorLocation(_StartLoc);
+	_Object->SetActorRotation(_StartRot);
+
+	SetActorTickEnabled(false);
+}
+
+/** Find a direction the object can move in that won't take it into another object or make it float above ground */
+void ADoubleTake::ChooseTargetLocation(float inMaxDistanceAllowed)
+{
+
+}
+
+//Called every frame
 void ADoubleTake::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
 
-void ADoubleTake::setObject(AActor * obj)
-{
-	iterationCount = 0;
-	object = obj;
-	startLoc = obj->GetActorLocation();
-	startRot = obj->GetActorRotation();
-}
-
-
-void ADoubleTake::SelectRandomUnseenObject()
-{
-	AActor* chosenObject = ASymptomHelper::SelectRandomUnseen(DoubleTakeActors);
-
-	if (chosenObject == NULL)
+	if (_IsSpotted == false)
 	{
-		FTimerHandle timerHandle;
+		//Check if the object being moved is within view of the player
+		if (_Player->GetDotProductTo(_Object) >= _PeripheralViewBound)
+		{
+			_IsSpotted = true;
 
-		GetWorldTimerManager().SetTimer(timerHandle, this, &ADoubleTake::SelectRandomUnseenObject, 3.0f, false);
-	}
-	else
-	{
-		setObject(chosenObject);
+			//Store X & Y distance of object from its starting location
+			ddX = UKismetMathLibrary::Abs((_Object->GetActorLocation() - _StartLoc).X);
+			ddY = UKismetMathLibrary::Abs((_Object->GetActorLocation() - _StartLoc).Y);
+		}
 	}
 }
 
+/**
 void ADoubleTake::Update()
 {
 	//If the object has not yet been spotted...
 	if (!isSpotted  && isRunning)
 	{
-		//Check if the object being moved is in direct view of the player
-		if (player->GetDotProductTo(object) >= .83)
-		{
-			isSpotted = true;
-			//Store X & Y distance of object from its starting location
-			ddX = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).X);
-			ddY = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).Y);
-		}
+		
 		//otherwise, if the object hasn't moved too far away yet, move a lil bit
 		else if (iterationCount != 40)
 		{
@@ -122,21 +150,8 @@ void ADoubleTake::Update()
 			EndSymptom();
 		}
 	}
-}
+}*/
 
-void ADoubleTake::EndSymptom()
-{
-	iterationCount = 0;
-	isSpotted = false;
-	isRunning = false;
-	object->SetActorLocation(startLoc);
-	object->SetActorRotation(startRot);
-}
-
-TArray<AActor*> ADoubleTake::getDoubleTakeActors() const
-{
-	return DoubleTakeActors;
-}
 
 /**
 //If we dont find a StaticMeshActor within player's periphery, this will allow us to at least possess the closest thing

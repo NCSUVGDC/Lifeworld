@@ -166,7 +166,7 @@ void ASymptomsManager::ImposeDoubleTake(AActor * SymptomActor)
 	UE_CLOG(DebugSymptomCanTickThisFrame, LogTemp, Warning, TEXT("Running DoubleTake Symptom on Actor %s"), *SymptomActor->GetName());
 	
 	//Cast SymptomActor to DoubleTake (which we know it has to be) and call its Update() method
-	((ADoubleTake*)SymptomActor)->Update();
+	//((ADoubleTake*)SymptomActor)->Update();
 }
 
 void ASymptomsManager::ImposeWarpingWalls(AActor * SymptomActor) {}

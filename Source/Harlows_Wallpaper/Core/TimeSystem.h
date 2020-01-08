@@ -12,6 +12,7 @@ class HARLOWS_WALLPAPER_API ATimeSystem : public AActor
 	GENERATED_BODY()
 
 public:
+
 	// Sets default values for this actor's properties
 	ATimeSystem();
 

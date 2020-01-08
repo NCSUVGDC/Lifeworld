@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Core/SymptomsManager.h"
+#include "Core/Tween.h"
 #include "SymptomHelper.h"
 #include "Core/TimeSystem.h"
 #include "DoubleTake.generated.h"
@@ -14,60 +15,24 @@ class HARLOWS_WALLPAPER_API ADoubleTake : public AActor
 {
 	GENERATED_BODY()
 
-public:
-	// Sets default values for this actor's properties
-	ADoubleTake();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	//Set refence to what object should be affected by this symptom
-	void setObject(AActor * obj);
-
-	//Set refence to the player for easy access when calculating dot products
-	void setPlayer(AActor * ply);
-
-	//Update called once per frame by SymptomManager
-	void Update();
-
-	UPROPERTY(EditAnywhere)
-		class ATimeSystem* TimeSystem;
-
-	/* Select a possessable object out of player's view and activate symptom on it
-	
-	*/
-	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		void SelectRandomUnseenObject();
-
-	/*
-	Gets an array of actors that can be used for DoubleTake
-
-	*Return:	Array of actors that are valid for DoubleTake
-*/
-	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		TArray<AActor*> getDoubleTakeActors() const;
-
 private:
 
-	//Ends the symptom, immediately returns object to resting place
-	void EndSymptom();
-
-	//# of ticks since DoubleTake started running
-	int tickCount = 0;
-
-	// Array of actors that can be possess by double take function
-	UPROPERTY()
-		TArray<AActor*> DoubleTakeActors;
+	const FString DoubleTakeTag = "DoubleTake";
 
 	//Reference to object
-	AActor * object;
+	AActor* _Object;
 	//Refence to player
-	AActor * player;
+	AActor* _Player;
+
+	//Starting location + rotation of object
+	FVector _StartLoc = FVector::ZeroVector;
+	FRotator _StartRot = FRotator::ZeroRotator;
+
+	//boundary of the player's peripheral view
+	float _PeripheralViewBound = 0.7f;
+
+	//Tells if the object has been spotted
+	bool _IsSpotted = false;
 
 	//X distance of object from original location
 	float ddX;
@@ -77,18 +42,56 @@ private:
 	//Number of movement iterations
 	int iterationCount = 0;
 
-	//Starting location + rotation of object
-	FVector startLoc = FVector::ZeroVector;
-	FRotator startRot = FRotator::ZeroRotator;
+	//Ends the symptom, immediately returns object to resting place
+	void EndSymptom();
 
-	//Tells if the symptom is currently Running. 
-	//Switches to true when an object has been chosen to move under this Symptom
-	//Switches to false when the object moving returns to resting position
-	bool isRunning = false;
+	//Array of actors that can be possess by double take function
+	UPROPERTY()
+		TArray<AActor*> DoubleTakeActors;
 
-	//Tells if the object has been spotted
-	bool isSpotted = false;
+public:
 
-	//Time (in seconds) in game time when the DoubleTake should spawn
-	float timeToSpawnAt = 105.f;
+	//Used to track movement of the object moved by this symptom as a unit of time
+	Tween TweenInstance;
+
+protected:
+
+	//Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:
+
+	//Sets default values for this actor's properties
+	ADoubleTake();
+
+	//Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	//Set refence to the player for easy access when calculating dot products
+	void SetPlayer(AActor * ply);
+
+	//Update called once per frame by SymptomManager
+	void Update();
+
+	UPROPERTY(EditAnywhere)
+		class ATimeSystem* TimeSystem;
+
+   /* Select a possessable object outside of player's view and activate symptom on it 
+	*
+	*PeripheralViewBound:	how far the phantom is allowed to appear into the player's F.O.V before the timer for it to disappear begins (1 = direct line of sight)
+
+	* return: True if compatible item was found, false if not
+	*/
+	UFUNCTION(BlueprintCallable, Category = "Symptoms")
+		bool StartSymptom(float PeripheralViewBound = 0.7f);
+
+	/* Gets an array of actors that can be used for DoubleTake
+	 *
+	 * Return:	Array of actors that are valid for DoubleTake
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Symptoms")
+		TArray<AActor*> getDoubleTakeActors() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Symptoms")
+		bool ChooseTargetLocation(float inMaxDistanceAllowed);
 };
