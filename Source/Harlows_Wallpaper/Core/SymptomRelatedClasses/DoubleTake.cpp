@@ -20,6 +20,8 @@ void ADoubleTake::BeginPlay()
 {
 	Super::BeginPlay();
 
+	SetActorTickEnabled(false);
+
 	//Get list of all Actors in the game
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), FoundActors);
@@ -57,28 +59,99 @@ void ADoubleTake::SetPlayer(AActor * ply)
 /** Select a random unseen object for the double take symptom.
  * @Return: true if a proper object is found, false if not
  */
-bool ADoubleTake::StartSymptom(float inPeripheralViewBound)
+bool ADoubleTake::StartSymptom(float inMaxDistanceFromOriginAllowed, float inPeripheralViewBound)
 {
 	//find a random unseen object with the tag "DoubleTake"
 	AActor* chosenObject = ASymptomHelper::SelectRandomUnseen(DoubleTakeActors);
 
-	if (chosenObject != NULL)
+	if (IsValid(chosenObject) == true)
 	{
 		_Object = chosenObject;
 
 		_StartLoc = _Object->GetActorLocation();
 		_StartRot = _Object->GetActorRotation();
 
+		_PeripheralViewBound = inPeripheralViewBound;
+		_MaxDistanceFromOriginAllowed = inMaxDistanceFromOriginAllowed;
+
 		_IsSpotted = false;
 
-		_PeripheralViewBound = inPeripheralViewBound;
-
 		SetActorTickEnabled(true);
+
+		GetNewMoveDirection();
 
 		return true;
 	}
 
 	return false;
+}
+
+//rotate the direction of movement to use for this object by a degree (chosen randomly)
+void ADoubleTake::GetNewMoveDirection()
+{
+	int rotation = FMath::RandRange(0, 360);
+	_CurrentMoveDirection = _CurrentMoveDirection.RotateAngleAxis(rotation, FVector(0, 0, 1));
+}
+
+//Called every frame
+void ADoubleTake::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	//If not spotted yet, update movement and check if spotted
+	if (_IsSpotted == false)
+	{
+		MoveObject();
+		CheckIfSpotted();
+	}
+	else //Has been spotted, work towards returning back
+	{
+		_TimeSinceReturnStart += DeltaTime;
+
+		if (_TimeSinceReturnStart > _ReturnTime)
+		{
+			EndSymptom();
+		}
+		else
+		{
+			ReturnToOrigin();
+		}
+	}
+}
+
+//Move the object a little bit in the given direction, but not past the max distance from origin point allowed
+void ADoubleTake::MoveObject()
+{
+	float distanceFromOrigin = FVector::Dist(_Object->GetActorLocation(), _StartLoc);
+
+	if (distanceFromOrigin < _MaxDistanceFromOriginAllowed)
+	{
+		_Object->AddActorWorldOffset(_CurrentMoveDirection);
+	}
+}
+
+//Check if object is in player's peripheral view. If so, initialize return to origin
+void ADoubleTake::CheckIfSpotted()
+{
+	if (_Player->GetHorizontalDotProductTo(_Object) > _PeripheralViewBound || _Player->GetDotProductTo(_Object) > _PeripheralViewBound)
+	{
+		_IsSpotted = true;
+		_TimeSinceReturnStart = 0.0f;
+		_WorldLocationSpottedAt = _Object->GetActorLocation();
+
+		//SPECIAL CASE: large difference in Y-locations (fallen off of shelf or other high place) = Snap back to position
+		if (_StartLoc.Y > (_Object->GetActorLocation().Y + 20.0f))
+		{
+			EndSymptom();
+		}
+	}
+}
+
+//using a function of time, return the object back to its proper location
+void ADoubleTake::ReturnToOrigin()
+{
+	FVector newLocation = _WorldLocationSpottedAt + (_TimeSinceReturnStart / _ReturnTime) * (_StartLoc - _WorldLocationSpottedAt);
+	_Object->SetActorLocation(newLocation);
 }
 
 /** Reset the object's position and orientation and end the symptom */
@@ -87,98 +160,12 @@ void ADoubleTake::EndSymptom()
 	_Object->SetActorLocation(_StartLoc);
 	_Object->SetActorRotation(_StartRot);
 
+	_Object = NULL;
+	_CurrentMoveDirection = FVector(0, 0.25, 0);
+
+	_IsSpotted = false;
+	_TimeSinceReturnStart = 0.0f;
+	_WorldLocationSpottedAt = FVector::ZeroVector;
+
 	SetActorTickEnabled(false);
 }
-
-/** Find a direction the object can move in that won't take it into another object or make it float above ground */
-void ADoubleTake::ChooseTargetLocation(float inMaxDistanceAllowed)
-{
-
-}
-
-//Called every frame
-void ADoubleTake::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (_IsSpotted == false)
-	{
-		//Check if the object being moved is within view of the player
-		if (_Player->GetDotProductTo(_Object) >= _PeripheralViewBound)
-		{
-			_IsSpotted = true;
-
-			//Store X & Y distance of object from its starting location
-			ddX = UKismetMathLibrary::Abs((_Object->GetActorLocation() - _StartLoc).X);
-			ddY = UKismetMathLibrary::Abs((_Object->GetActorLocation() - _StartLoc).Y);
-		}
-	}
-}
-
-/**
-void ADoubleTake::Update()
-{
-	//If the object has not yet been spotted...
-	if (!isSpotted  && isRunning)
-	{
-		
-		//otherwise, if the object hasn't moved too far away yet, move a lil bit
-		else if (iterationCount != 40)
-		{
-			object->AddActorWorldOffset(FVector(0, 0.2, 0));
-			iterationCount++;
-		}
-	}
-	//otherwise...
-	else if (isRunning)
-	{
-		//If not close to original location in X direction, move closer
-		if (ddX > 1)
-		{
-			ddX -= 1;
-			object->AddActorWorldOffset(FVector(-1, 0, 0));
-		}
-		//If not close to original location in Y direction, move closer
-		if (ddY > 1)
-		{
-			ddY -= 1;
-			object->AddActorWorldOffset(FVector(0, -1, 0));
-		}
-		//If object is close enough to original location, snap back into place and destroy this possessed object
-		if (ddX < 1 && ddY < 1)
-		{
-			EndSymptom();
-		}
-	}
-}*/
-
-
-/**
-//If we dont find a StaticMeshActor within player's periphery, this will allow us to at least possess the closest thing
-	AActor* closestObject = DoubleTakeActors[0];
-	float closestDot = -1;
-
-	// Iterate through list of possessable objects
-	for (AActor* object : DoubleTakeActors)
-	{
-		float dotProd = (GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager)->GetDotProductTo(object);
-		//If object is in periphery, possess with this symptom
-		if (dotProd >= 0.7 && dotProd < 0.8)
-		{
-			setObject(object);
-			return true;
-		}
-		//If not in periphery, check if it is closer to player's view than current "closestObject"
-		else if (dotProd > closestDot && dotProd < .8)
-		{
-			closestObject = object;
-			closestDot = dotProd;
-		}
-	}
-
-	//If a good candidate was not found, use the closest one
-	setObject(closestObject);
-	return true;
-
-
-**/

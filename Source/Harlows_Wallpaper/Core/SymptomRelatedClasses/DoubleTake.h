@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Core/SymptomsManager.h"
-#include "Core/Tween.h"
 #include "SymptomHelper.h"
 #include "Core/TimeSystem.h"
 #include "DoubleTake.generated.h"
@@ -17,6 +16,7 @@ class HARLOWS_WALLPAPER_API ADoubleTake : public AActor
 
 private:
 
+	//tag used on objects that this symptom can possess
 	const FString DoubleTakeTag = "DoubleTake";
 
 	//Reference to object
@@ -28,31 +28,47 @@ private:
 	FVector _StartLoc = FVector::ZeroVector;
 	FRotator _StartRot = FRotator::ZeroRotator;
 
+	//Direction the object being moved by this symptom is currently moving
+	FVector _CurrentMoveDirection = FVector(0, 0.25, 0);
+
 	//boundary of the player's peripheral view
 	float _PeripheralViewBound = 0.7f;
+
+	//maximum distance object is allowed to move from its origin
+	float _MaxDistanceFromOriginAllowed;
 
 	//Tells if the object has been spotted
 	bool _IsSpotted = false;
 
-	//X distance of object from original location
-	float ddX;
-	//Y distance of object from original location
-	float ddY;
+	//Array of actors that can be possess by double take function
+	TArray<AActor*> DoubleTakeActors;
 
-	//Number of movement iterations
-	int iterationCount = 0;
+	//total time the object being moved has to return to original spot after being spotted
+	float _ReturnTime = 2.0f;
+
+	//time passed since the object being moved was spotted
+	float _TimeSinceReturnStart = 0.0f;
+
+	//World location the object was when spotted by player
+	FVector _WorldLocationSpottedAt;
+
+private:
+
+	//Get a random direction to move this object in for this symptom
+	void GetNewMoveDirection();
+
+	//Move the object a little bit
+	void MoveObject();
+
+	//Check if object is in player's peripheral view
+	void CheckIfSpotted();
+
+	//Moves object closer to its original spot based on time passed since being sighted by player
+	void ReturnToOrigin();
 
 	//Ends the symptom, immediately returns object to resting place
 	void EndSymptom();
 
-	//Array of actors that can be possess by double take function
-	UPROPERTY()
-		TArray<AActor*> DoubleTakeActors;
-
-public:
-
-	//Used to track movement of the object moved by this symptom as a unit of time
-	Tween TweenInstance;
 
 protected:
 
@@ -70,20 +86,17 @@ public:
 	//Set refence to the player for easy access when calculating dot products
 	void SetPlayer(AActor * ply);
 
-	//Update called once per frame by SymptomManager
-	void Update();
-
 	UPROPERTY(EditAnywhere)
 		class ATimeSystem* TimeSystem;
 
    /* Select a possessable object outside of player's view and activate symptom on it 
 	*
+	*MaxDistanceFromOriginAllowed: In this new version, the actor is constantly moving. This determines the max distance the object is allowed to move from its origin
 	*PeripheralViewBound:	how far the phantom is allowed to appear into the player's F.O.V before the timer for it to disappear begins (1 = direct line of sight)
-
 	* return: True if compatible item was found, false if not
 	*/
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		bool StartSymptom(float PeripheralViewBound = 0.7f);
+		bool StartSymptom(float MaxDistanceFromOriginAllowed, float PeripheralViewBound = 0.7f);
 
 	/* Gets an array of actors that can be used for DoubleTake
 	 *
@@ -91,7 +104,4 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Symptoms")
 		TArray<AActor*> getDoubleTakeActors() const;
-
-	UFUNCTION(BlueprintCallable, Category = "Symptoms")
-		bool ChooseTargetLocation(float inMaxDistanceAllowed);
 };
