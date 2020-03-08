@@ -12,6 +12,7 @@ class HARLOWS_WALLPAPER_API ATimeSystem : public AActor
 	GENERATED_BODY()
 
 public:
+
 	// Sets default values for this actor's properties
 	ATimeSystem();
 
@@ -33,6 +34,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
 		// Get current second
 		int32 CurrentSecond();
+
+	UFUNCTION(BlueprintCallable, Category = "TimeSystem")
+		// Get current second in float form
+		float CurrentSecondFloat();
 
 private:
 	// amount of in-game time passed
