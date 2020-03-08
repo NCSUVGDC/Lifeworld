@@ -1,40 +1,44 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "DoubleTake.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "Runtime/GameplayTags/Classes/GameplayTagContainer.h"
 
-
-// Sets default values
+//Sets default values
 ADoubleTake::ADoubleTake()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	//Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
+TArray<AActor*> ADoubleTake::getDoubleTakeActors() const
+{
+	return DoubleTakeActors;
+}
+
+//Called when the game starts or when spawned
 void ADoubleTake::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Get list of all Actors in the game
+	SetActorTickEnabled(false);
+
+	//Get list of all Actors in the game
 	TArray<AActor*> FoundActors;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AActor::StaticClass(), FoundActors);
 
-	// If the actor has the "possess" tag, add it to the list of possibly manipulated actors
+	//If the actor has the proper tag, add it to the list of possibly manipulated actors
 	for (AActor* Actor : FoundActors)
 	{
-		// Check for tags
+		//Check if the actor has any tags
 		if (Actor->Tags.Num() != 0)
 		{
-			// Loop backwards over the list so we can safely remove tags as we iterate
+			//Loop backwards over the list of tags
 			for (int Idx = Actor->Tags.Num() - 1; Idx >= 0; Idx--)
 			{
 				FName& TagName = Actor->Tags[Idx];
 
-				//check if the tag says it can be moved by DoubleTakeSymptom
-				if (TagName == FName("possess"))
+				//If the tag says it can be moved by this symptom, add it to the list
+				if (TagName == FName(*DoubleTakeTag))
 				{
 					DoubleTakeActors.Add(Actor);
 				}
@@ -42,132 +46,126 @@ void ADoubleTake::BeginPlay()
 		}
 	}
 
-	setPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
+	//tell the manager what the player actor is
+	SetPlayer(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager);
 }
 
-void ADoubleTake::setPlayer(AActor * ply)
+//tell the manager which actor is the player
+void ADoubleTake::SetPlayer(AActor * ply)
 {
-	player = ply;
+	_Player = ply;
 }
 
-// Called every frame
+/** Select a random unseen object for the double take symptom.
+ * @Return: true if a proper object is found, false if not
+ */
+bool ADoubleTake::StartSymptom(float inMaxDistanceFromOriginAllowed, float inPeripheralViewBound)
+{
+	//find a random unseen object with the tag "DoubleTake"
+	AActor* chosenObject = ASymptomHelper::SelectRandomUnseen(DoubleTakeActors);
+
+	if (IsValid(chosenObject) == true)
+	{
+		_Object = chosenObject;
+
+		_StartLoc = _Object->GetActorLocation();
+		_StartRot = _Object->GetActorRotation();
+
+		_PeripheralViewBound = inPeripheralViewBound;
+		_MaxDistanceFromOriginAllowed = inMaxDistanceFromOriginAllowed;
+
+		_IsSpotted = false;
+
+		SetActorTickEnabled(true);
+
+		GetNewMoveDirection();
+
+		return true;
+	}
+
+	return false;
+}
+
+//rotate the direction of movement to use for this object by a degree (chosen randomly)
+void ADoubleTake::GetNewMoveDirection()
+{
+	int rotation = FMath::RandRange(0, 360);
+	_CurrentMoveDirection = _CurrentMoveDirection.RotateAngleAxis(rotation, FVector(0, 0, 1));
+}
+
+//Called every frame
 void ADoubleTake::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//If enough time has passed since "DoubleTake" was last run, tell SymptomManager to run it again
-	if (TimeSystem->CurrentSecond() > timeToSpawnAt)
+	//If not spotted yet, update movement and check if spotted
+	if (_IsSpotted == false)
 	{
-		//Select an object to "possess" and move
-		if (SelectObject())
-		{
-			//Once location is found, tell symptom manager to run the Phantom symptom
-			if (SymptomManager->AddSymptomToActor(this, "Symptoms.DoubleTake"))
-			{
-				//DoubleTake has an item to move and is schedule to run, begin the symptom
-				isRunning = true;
-				timeToSpawnAt = TimeSystem->CurrentSecond() + 10.0f;
-			}
-		}
+		MoveObject();
+		CheckIfSpotted();
 	}
-
-	//If symptom is currently running, check if it has been running for too long, in which case cancel the symptom and make phantom disappear
-	if (isRunning)
+	else //Has been spotted, work towards returning back
 	{
-		if (tickCount++ > 530)
+		_TimeSinceReturnStart += DeltaTime;
+
+		if (_TimeSinceReturnStart > _ReturnTime)
 		{
 			EndSymptom();
-			tickCount = 0;
+		}
+		else
+		{
+			ReturnToOrigin();
 		}
 	}
 }
 
-void ADoubleTake::setObject(AActor * obj)
+//Move the object a little bit in the given direction, but not past the max distance from origin point allowed
+void ADoubleTake::MoveObject()
 {
-	iterationCount = 0;
-	object = obj;
-	startLoc = obj->GetActorLocation();
-	startRot = obj->GetActorRotation();
+	float distanceFromOrigin = FVector::Dist(_Object->GetActorLocation(), _StartLoc);
+
+	if (distanceFromOrigin < _MaxDistanceFromOriginAllowed)
+	{
+		_Object->AddActorWorldOffset(_CurrentMoveDirection);
+	}
 }
 
-
-bool ADoubleTake::SelectObject()
+//Check if object is in player's peripheral view. If so, initialize return to origin
+void ADoubleTake::CheckIfSpotted()
 {
-	//If we dont find a StaticMeshActor within player's periphery, this will allow us to at least possess the closest thing
-	AActor* closestObject = DoubleTakeActors[0];
-	float closestDot = -1;
-
-	// Iterate through list of possessable objects
-	for (AActor* object : DoubleTakeActors)
+	if (_Player->GetHorizontalDotProductTo(_Object) > _PeripheralViewBound || _Player->GetDotProductTo(_Object) > _PeripheralViewBound)
 	{
-		float dotProd = (GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager)->GetDotProductTo(object);
-		//If object is in periphery, possess with this symptom
-		if (dotProd >= 0.7 && dotProd < 0.8)
-		{
-			setObject(object);
-			return true;
-		}
-		//If not in periphery, check if it is closer to player's view than current "closestObject"
-		else if (dotProd > closestDot && dotProd < .8)
-		{
-			closestObject = object;
-			closestDot = dotProd;
-		}
-	}
+		_IsSpotted = true;
+		_TimeSinceReturnStart = 0.0f;
+		_WorldLocationSpottedAt = _Object->GetActorLocation();
 
-	//If a good candidate was not found, use the closest one 
-	setObject(closestObject);
-	return true;
-}
-
-void ADoubleTake::Update()
-{
-	//If the object has not yet been spotted...
-	if (!isSpotted  && isRunning)
-	{
-		//Check if the object being moved is in direct view of the player
-		if (player->GetDotProductTo(object) >= .83)
-		{
-			isSpotted = true;
-			//Store X & Y distance of object from its starting location
-			ddX = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).X);
-			ddY = UKismetMathLibrary::Abs((object->GetActorLocation() - startLoc).Y);
-		}
-		//otherwise, if the object hasn't moved too far away yet, move a lil bit
-		else if (iterationCount != 40)
-		{
-			object->AddActorWorldOffset(FVector(0, 0.2, 0));
-			iterationCount++;
-		}
-	}
-	//otherwise...
-	else if (isRunning)
-	{
-		//If not close to original location in X direction, move closer
-		if (ddX > 1)
-		{
-			ddX -= 1;
-			object->AddActorWorldOffset(FVector(-1, 0, 0));
-		}
-		//If not close to original location in Y direction, move closer
-		if (ddY > 1)
-		{
-			ddY -= 1;
-			object->AddActorWorldOffset(FVector(0, -1, 0));
-		}
-		//If object is close enough to original location, snap back into place and destroy this possessed object
-		if (ddX < 1 && ddY < 1)
+		//SPECIAL CASE: large difference in Y-locations (fallen off of shelf or other high place) = Snap back to position
+		if (_StartLoc.Y > (_Object->GetActorLocation().Y + 20.0f))
 		{
 			EndSymptom();
 		}
 	}
 }
 
+//using a function of time, return the object back to its proper location
+void ADoubleTake::ReturnToOrigin()
+{
+	FVector newLocation = _WorldLocationSpottedAt + (_TimeSinceReturnStart / _ReturnTime) * (_StartLoc - _WorldLocationSpottedAt);
+	_Object->SetActorLocation(newLocation);
+}
+
+/** Reset the object's position and orientation and end the symptom */
 void ADoubleTake::EndSymptom()
 {
-	iterationCount = 0;
-	isSpotted = false;
-	isRunning = false;
-	object->SetActorLocation(startLoc);
-	object->SetActorRotation(startRot);
+	_Object->SetActorLocation(_StartLoc);
+	_Object->SetActorRotation(_StartRot);
+
+	_Object = NULL;
+	_CurrentMoveDirection = FVector(0, 0.25, 0);
+
+	_IsSpotted = false;
+	_TimeSinceReturnStart = 0.0f;
+	_WorldLocationSpottedAt = FVector::ZeroVector;
+
+	SetActorTickEnabled(false);
 }

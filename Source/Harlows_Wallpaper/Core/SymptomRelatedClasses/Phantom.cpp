@@ -36,24 +36,11 @@ void APhantom::SetPlayer(AActor * actor)
 // Called every frame
 void APhantom::Tick(float DeltaTime)
 {
+	float currentSecond = TimeSystem->CurrentSecond();
+
 	Super::Tick(DeltaTime);
 
-	if (isRunning == false && tickCount++ > 300)
-	{
-		FindPhantomSpawn();
-	}
-	//If symptom is currently running, check if it has been running for too long, in which case cancel the symptom and make phantom disappear
-	else if (usingKillTime)
-	{
-		if (TimeSystem->CurrentSecond() >= killTime)
-		{
-			EndSymptom();
-		}
-	}
-	else
-	{
-		Update();
-	}
+	Update();
 }
 
 
@@ -68,19 +55,23 @@ void APhantom::Update()
 		{
 			//Because of the nature of the VR headset, we must calculate two different dot products to get the best estimation of the player's view
 			//to the phantom. This statement checks if either is exceeding the value that would indicate the phantom is well within view of the player
-			if (player->GetDotProductTo(this) >= 0.65 || player->GetHorizontalDotProductTo(this) >= 0.6)
+			if (player->GetDotProductTo(this) >= _PeripheralViewBound || player->GetHorizontalDotProductTo(this) >= _PeripheralViewBound)
 			{
 				//Phantom has been spotted, start the clock until it should automatically disappear
 				isSpotted = true;
-				timeSpotted = TimeSystem->CurrentSecond();
+				timeSpotted = TimeSystem->CurrentSecondFloat();
+
+				FTimerHandle timerHandle;
+
+				GetWorldTimerManager().SetTimer(timerHandle, this, &APhantom::EndSymptom, _ViewTimeAllowed, false);
 			}
 		}
 		//otherwise...
 		else
 		{
-			//Now check the dot products using values (.75) that would indicate the player is looking directly at the phantom.
-			//if one of the dot products exceeds this number OR if it has been 3 seconds since first sighting, make phantom disappear
-			if (player->GetHorizontalDotProductTo(this) > 0.75 || player->GetDotProductTo(this) > 0.75 || TimeSystem->CurrentSecond() - timeSpotted > 3)
+			//Now check the dot products using values that would indicate the player is looking directly at the phantom.
+			//if one of the dot products exceeds this number then make phantom disappear
+			if (player->GetHorizontalDotProductTo(this) > _DirectViewBound || player->GetDotProductTo(this) > _DirectViewBound || TimeSystem->CurrentSecondFloat() - timeSpotted > _ViewTimeAllowed)
 			{
 				EndSymptom();
 			}
@@ -88,11 +79,43 @@ void APhantom::Update()
 	}
 }
 
-
-bool APhantom::FindPhantomSpawn()
+/** Activate the phantom */
+void APhantom::ActivatePhantom(int inKillTime, float inPeripheralViewBound, float inDirectViewBound, float inViewTimeAllowed)
 {
-	tickCount = 0;
-	UE_LOG(LogTemp, Warning, TEXT("attempting to spawn"));
+	FString infinity = "inf";
+
+	SetActorTickEnabled(true);
+
+	_KillTime = inKillTime;
+
+	_ViewTimeAllowed = 1000;
+
+	_PeripheralViewBound = inPeripheralViewBound;
+
+	_DirectViewBound = inDirectViewBound;
+
+	_ViewTimeAllowed = inViewTimeAllowed;
+
+	FindPhantomSpawn();
+
+	if (isRunning == false)
+	{
+		FTimerHandle timerHandle;
+
+		GetWorldTimerManager().SetTimer(timerHandle, this, &APhantom::FindPhantomSpawn, 3.0f, false);
+	}
+}
+
+void APhantom::FindPhantomSpawn()
+{
+	bool canSpawnRight = false;
+	bool canSpawnLeft = false;
+
+	FVector ghostLocLeft;
+	FVector ghostLocRight;
+
+	timeOfLastSpawnAttempt = TimeSystem->CurrentSecond();
+
 	//Generate FHitResult and CollisionParams that will be needed for the LineTrace
 	FHitResult OutHit;
 	FCollisionQueryParams CollisionParams;
@@ -113,11 +136,10 @@ bool APhantom::FindPhantomSpawn()
 	//If nothing is hit, good to spawn phantom at end of line
 	if (!isHit)
 	{
-		//Spawn phantom at end of line from LineTrace
-		FVector ghostLoc = ((RightVector * 80.f) + Start);
-		ghostLoc.Z = 0;
-		SpawnPhantom(ghostLoc);
-		return true;
+		//cache location ghost can spawn at
+		canSpawnRight = true;
+		ghostLocRight = ((RightVector * 80.f) + Start);
+		ghostLocRight.Z = 0;
 	}
 
 	//Right side was obstructed, so try spawning on left side
@@ -130,28 +152,42 @@ bool APhantom::FindPhantomSpawn()
 	//If nothing is hit on left side, spawn phantom at end of LineTrace
 	if (!isHit)
 	{
-		//Spawn phantom at end of line from LineTrace
-		FVector ghostLoc = ((LeftVector * 80.f) + Start);
-		ghostLoc.Z = 0;
-		SpawnPhantom(ghostLoc);
-		return true;
+		//cache location ghost can spawn at
+		canSpawnLeft = true;
+		FVector ghostLocLeft = ((LeftVector * 80.f) + Start);
+		ghostLocLeft.Z = 0;
 	}
 
-	// just print that we're executing successfully, for now
-	FString DebugMsg = FString::Printf(TEXT("failed to spawn"));
-	GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Red, DebugMsg);
+	if (canSpawnRight)
+	{
+		if (canSpawnLeft)
+		{
+			float val = FMath::RandRange(0.f, 1.f);
+			val > 0.5 ? SpawnPhantom(ghostLocLeft) : SpawnPhantom(ghostLocRight);
+		}
+		else
+		{
+			SpawnPhantom(ghostLocRight);
+		}
+	}
+	else if (canSpawnLeft)
+	{
+		SpawnPhantom(ghostLocLeft);
+	}
 
-	UE_LOG(LogTemp, Warning, TEXT("failed to spawn"));
+}
 
-	return false;
+void APhantom::SpawnPhantomWithLocation(FVector inSpawnLoc, int inKillTime, float inPeripheralViewBound, float inDirectViewBound, float inViewTimeAllowed)
+{
+	ActivatePhantom(inKillTime, inPeripheralViewBound, inDirectViewBound, inViewTimeAllowed);
 
+	SpawnPhantom(inSpawnLoc);
 }
 
 void APhantom::SpawnPhantom(FVector spawnLoc)
 {
 	//Place phantom in new location
 	SetActorLocation(spawnLoc);
-
 
 	//Rotate phantom to face player
 	FRotator facePlayer = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetCameraLocation());
@@ -163,11 +199,6 @@ void APhantom::SpawnPhantom(FVector spawnLoc)
 	isRunning = true;
 	SetActorHiddenInGame(false);
 	SetActorTickEnabled(true);
-
-	// just print that we're executing successfully, for now
-	FString DebugMsg = FString::Printf(TEXT("Running Phantom Symptom"));
-	GEngine->AddOnScreenDebugMessage(1, 2.0f, FColor::Green, DebugMsg);
-
 }
 
 void APhantom::EndSymptom()
@@ -177,12 +208,5 @@ void APhantom::EndSymptom()
 	isRunning = false;
 	isSpotted = false;
 	SetActorHiddenInGame(true);
-//	SetActorTickEnabled(false);
-	usingKillTime = false;
-}
-
-void APhantom::SetKillTime(int inKillTime)
-{
-	killTime = inKillTime;
-	usingKillTime = true;
+	SetActorTickEnabled(false);
 }
