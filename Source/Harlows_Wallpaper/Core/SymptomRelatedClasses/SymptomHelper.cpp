@@ -74,7 +74,7 @@ AActor* ASymptomHelper::SelectRandomUnseen(TArray<AActor*> actors)
 		///UE_LOG(LogTemp, Log, TEXT("%s Dot Product: %f"), *loopActor->GetName(), dotProd);
 
 		// If negative dot product, add to valid unseen actor array
-		if (dotProd < 0.0) {
+		if (dotProd < 0.7) {
 			validUnseenActors.Add(loopActor);
 		}
 	}
@@ -113,7 +113,7 @@ bool ASymptomHelper::ValidateUnseen(AActor *object)
 	cameraVector = cameraVector / cameraVector.Size();				// Normalizes the forward vector of the camera (magnitude of 1)
 	float dotProd = FVector::DotProduct(distanceVector, cameraVector);	// Gets dot product of normalized distance vector and normalized camera vector
 
-	if (dotProd < 0.0) {
+	if (dotProd < 0.7) {
 		return true;
 	}
 	else {
@@ -137,7 +137,7 @@ bool ASymptomHelper::ValidateUnseenLocation(FVector location, AActor *object)
 	cameraVector = cameraVector / cameraVector.Size();				// Normalizes the forward vector of the camera (magnitude of 1)
 	float dotProd = FVector::DotProduct(distanceVector, cameraVector);	// Gets dot product of normalized distance vector and normalized camera vector
 
-	if (dotProd < 0.0) {
+	if (dotProd < 0.7) {
 		return true;
 	}
 	else {
